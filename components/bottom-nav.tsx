@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, Home, ListChecks, UserRound, UtensilsCrossed } from "lucide-react";
+import { BookOpen, Calculator, Home, ListChecks, UserRound, UtensilsCrossed } from "lucide-react";
 
 // Barre d'onglets fixe en bas (shell app-like, voir REFONTE.md §5).
 // Cachée sur les flux plein écran (onboarding, login, génération, auth).
@@ -27,6 +27,12 @@ const ITEMS: {
     icon: ListChecks,
     isActive: (p) => p.startsWith("/listes") || p === "/list" || p.startsWith("/list/"),
   },
+  {
+    href: "/calculateur",
+    label: "Diète",
+    icon: Calculator,
+    isActive: (p) => p.startsWith("/calculateur"),
+  },
   { href: "/compte", label: "Compte", icon: UserRound, isActive: (p) => p.startsWith("/compte") },
 ];
 
@@ -41,7 +47,7 @@ export function BottomNav() {
       aria-label="Navigation principale"
       className="fixed inset-x-0 bottom-0 z-40 border-t border-outline bg-surface/92 backdrop-blur"
     >
-      <div className="mx-auto grid h-16 max-w-md grid-cols-5">
+      <div className="mx-auto grid h-16 max-w-md grid-cols-6">
         {ITEMS.map((item) => {
           const active = item.isActive(pathname);
           const Icon = item.icon;

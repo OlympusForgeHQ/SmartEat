@@ -55,7 +55,7 @@ Utilitaires Tailwind disponibles : `bg-background`, `bg-surface`,
 `components/bottom-nav.tsx` affiche une barre d'onglets fixe en bas
 (h-16, z-40) sur toutes les pages sauf /onboarding, /login, /generating,
 /auth. Onglets : Accueil `/`, Repas `/plan`, Recettes `/recettes`,
-Listes `/listes`, Compte `/compte`.
+Listes `/listes`, Diète `/calculateur`, Compte `/compte`.
 
 Conventions de mise en page POUR TOUTES LES PAGES restylées :
 

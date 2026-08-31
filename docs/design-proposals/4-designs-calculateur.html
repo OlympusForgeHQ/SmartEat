@@ -1,0 +1,559 @@
+<title>Le formulaire Diet Legacy</title>
+<style>
+  /* ================================================================
+     SmartEat · propositions de design du calculateur Diet Legacy
+     Tokens issus de app/globals.css (Fraîcheur éditoriale).
+     Trois états de thème : clair (défaut), sombre système, sombre forcé.
+     ================================================================ */
+  :root {
+    --background: #faf6ee;
+    --surface: #ffffff;
+    --surface-variant: #f2ecdf;
+    --on-surface: #221f1a;
+    --on-surface-muted: #7a7266;
+    --outline: #e6ddcc;
+    --primary: #1b7a4e;
+    --on-primary: #ffffff;
+    --accent: #d9542e;
+    --shadow-md: 0 4px 14px -2px rgb(60 50 30 / 0.10);
+    --shadow-lg: 0 14px 36px -8px rgb(60 50 30 / 0.16);
+    --day-1: #1b7a4e; --day-2: #2e7fbe; --day-3: #e0a12f; --day-4: #8a5cd6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --background: #12100c;
+      --surface: #1c1915;
+      --surface-variant: #29241d;
+      --on-surface: #f2ede2;
+      --on-surface-muted: #a69d8d;
+      --outline: #3a342a;
+      --primary: #46c483;
+      --on-primary: #06301b;
+      --accent: #f07e52;
+      --shadow-md: 0 4px 14px -2px rgb(0 0 0 / 0.45);
+      --shadow-lg: 0 14px 36px -8px rgb(0 0 0 / 0.55);
+      --day-1: #46c483; --day-2: #5da8de; --day-3: #f2b84b; --day-4: #a98af0;
+    }
+  }
+  :root[data-theme="dark"] {
+    --background: #12100c;
+    --surface: #1c1915;
+    --surface-variant: #29241d;
+    --on-surface: #f2ede2;
+    --on-surface-muted: #a69d8d;
+    --outline: #3a342a;
+    --primary: #46c483;
+    --on-primary: #06301b;
+    --accent: #f07e52;
+    --shadow-md: 0 4px 14px -2px rgb(0 0 0 / 0.45);
+    --shadow-lg: 0 14px 36px -8px rgb(0 0 0 / 0.55);
+    --day-1: #46c483; --day-2: #5da8de; --day-3: #f2b84b; --day-4: #a98af0;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--background);
+    color: var(--on-surface);
+    font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .tnum { font-variant-numeric: tabular-nums; }
+  .wrap { max-width: 1060px; margin: 0 auto; padding: 0 24px; }
+
+  /* ---------- En-tête ---------- */
+  header.doc { padding: 56px 0 8px; }
+  .doc-brand { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; }
+  .doc h1 {
+    font-family: "Fraunces", Georgia, serif;
+    font-weight: 600;
+    font-size: clamp(2rem, 5vw, 3.1rem);
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    margin: 20px 0 12px;
+    max-width: 21ch;
+    text-wrap: balance;
+  }
+  .doc .lede { max-width: 62ch; color: var(--on-surface-muted); margin: 0 0 20px; }
+  .doc .lede strong { color: var(--on-surface); font-weight: 600; }
+
+  .source-card {
+    display: flex; flex-wrap: wrap; gap: 10px 26px; align-items: baseline;
+    border: 1px solid var(--outline); background: var(--surface);
+    border-radius: 20px; padding: 14px 20px; margin: 26px 0 0;
+    font-size: 14px;
+  }
+  .source-card .k { color: var(--on-surface-muted); font-size: 12px; display: block; }
+  .source-card .v { font-weight: 600; }
+
+  /* ---------- Sections proposition ---------- */
+  section.prop { padding: 64px 0 8px; }
+  .prop-head { max-width: 62ch; }
+  .prop-num {
+    display: inline-grid; place-items: center;
+    width: 34px; height: 34px; border-radius: 50%;
+    background: var(--primary); color: var(--on-primary);
+    font-weight: 700; font-size: 15px;
+  }
+  .prop h2 {
+    font-family: "Fraunces", Georgia, serif;
+    font-weight: 600; font-size: 1.9rem; letter-spacing: -0.015em;
+    margin: 14px 0 6px; line-height: 1.15;
+  }
+  .prop .essence { color: var(--on-surface-muted); margin: 0 0 8px; }
+  .prop-body { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 40px; align-items: start; margin-top: 26px; }
+  @media (max-width: 900px) { .prop-body { grid-template-columns: 1fr; } .prop-body .phone-col { order: -1; } }
+
+  .prop-notes h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--on-surface-muted); margin: 22px 0 8px; font-weight: 600; }
+  .prop-notes ul { margin: 0; padding-left: 18px; }
+  .prop-notes li { margin: 6px 0; }
+  .prop-notes .plus li::marker { color: var(--primary); }
+  .prop-notes .minus li::marker { color: var(--accent); }
+
+  /* ---------- Cadre téléphone ---------- */
+  .phone-col { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .phone {
+    width: 100%; max-width: 400px; height: 690px;
+    border: 1px solid var(--outline); border-radius: 42px;
+    background: var(--background);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden; position: relative;
+    padding: 14px 0 0;
+  }
+  .phone::after { /* fondu bas : la maquette est un extrait */
+    content: ""; position: absolute; inset: auto 0 0 0; height: 84px;
+    background: linear-gradient(to bottom, transparent, var(--background) 78%);
+    pointer-events: none;
+  }
+  .phone .statusbar { display: flex; justify-content: space-between; padding: 2px 26px 8px; font-size: 12px; font-weight: 600; color: var(--on-surface-muted); }
+  .screen { padding: 4px 20px 40px; height: calc(100% - 26px); overflow: hidden; }
+  .phone-caption { font-size: 13px; color: var(--on-surface-muted); text-align: center; }
+
+  /* ---- primitives d'UI SmartEat pour les maquettes ---- */
+  .m-title { font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: 26px; letter-spacing: -0.02em; line-height: 1.15; margin: 6px 0 2px; }
+  .m-sub { font-size: 13px; color: var(--on-surface-muted); margin: 0 0 14px; }
+  .m-label { font-size: 12px; font-weight: 600; color: var(--on-surface-muted); margin: 14px 0 6px; display: flex; align-items: center; gap: 6px; }
+  .m-label .n { display: inline-grid; place-items: center; width: 17px; height: 17px; border-radius: 50%; background: var(--surface-variant); color: var(--on-surface); font-size: 10.5px; }
+  .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--outline); border-radius: 999px; overflow: hidden; background: var(--surface); }
+  .seg.three { grid-template-columns: 1fr 1.2fr 1fr; }
+  .seg span { text-align: center; padding: 10px 4px; font-size: 13.5px; font-weight: 600; color: var(--on-surface-muted); }
+  .seg .on { background: var(--primary); color: var(--on-primary); border-radius: 999px; }
+  .fields { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .field { border: 1px solid var(--outline); background: var(--surface); border-radius: 16px; padding: 9px 11px; }
+  .field .fk { font-size: 10.5px; color: var(--on-surface-muted); }
+  .field .fv { font-weight: 700; font-size: 17px; }
+  .field .fv small { font-size: 11px; font-weight: 600; color: var(--on-surface-muted); }
+  .radio-card { display: flex; align-items: center; gap: 9px; border: 1px solid var(--outline); background: var(--surface); border-radius: 16px; padding: 10px 12px; font-size: 13px; margin-top: 7px; }
+  .radio-card .coef { margin-left: auto; font-weight: 700; font-size: 13px; color: var(--on-surface-muted); }
+  .radio-card.on { border-color: var(--primary); box-shadow: inset 0 0 0 1.5px var(--primary); background: color-mix(in srgb, var(--primary) 8%, var(--surface)); }
+  .radio-card.on .coef { color: var(--primary); }
+  .dot { width: 15px; height: 15px; border-radius: 50%; border: 1.5px solid var(--outline); flex: none; }
+  .on .dot { border-color: var(--primary); background: var(--primary); box-shadow: inset 0 0 0 3px var(--surface); }
+  .pills { display: flex; gap: 6px; overflow: hidden; margin-top: 4px; }
+  .pill { border: 1px solid var(--outline); background: var(--surface); border-radius: 999px; padding: 7px 12px; font-size: 12.5px; font-weight: 600; white-space: nowrap; color: var(--on-surface-muted); }
+  .pill.on { background: var(--primary); border-color: var(--primary); color: var(--on-primary); }
+  .live-card {
+    border-radius: 20px; background: color-mix(in srgb, var(--primary) 10%, var(--surface));
+    border: 1px solid color-mix(in srgb, var(--primary) 25%, var(--outline));
+    padding: 12px 16px; margin-top: 16px; display: flex; align-items: baseline; gap: 8px;
+  }
+  .live-card .big { font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: 34px; color: var(--primary); letter-spacing: -0.02em; }
+  .live-card .unit { font-size: 12.5px; font-weight: 600; color: var(--on-surface-muted); }
+  .live-card .meta { margin-left: auto; text-align: right; font-size: 11px; color: var(--on-surface-muted); line-height: 1.5; }
+  .live-card .meta b { color: var(--on-surface); }
+
+  /* semaine cards */
+  .weeks { display: flex; gap: 8px; margin-top: 10px; overflow: hidden; }
+  .week { flex: none; width: 118px; border: 1px solid var(--outline); background: var(--surface); border-radius: 18px; padding: 10px 11px; }
+  .week .wk { display: inline-block; font-size: 10px; font-weight: 700; color: #fff; border-radius: 999px; padding: 2px 8px; }
+  .week .kcal { font-weight: 700; font-size: 17px; margin-top: 6px; }
+  .week .kcal small { font-size: 10px; color: var(--on-surface-muted); font-weight: 600; }
+  .week .macros { font-size: 10.5px; color: var(--on-surface-muted); margin-top: 4px; line-height: 1.6; }
+
+  /* wizard (direction 2) */
+  .progress { height: 6px; border-radius: 999px; background: var(--surface-variant); margin: 8px 0 4px; overflow: hidden; }
+  .progress i { display: block; height: 100%; width: 60%; background: var(--primary); border-radius: 999px; }
+  .step-hint { text-align: center; font-size: 11.5px; color: var(--on-surface-muted); }
+  .hero-num { text-align: center; margin: 26px 0 8px; }
+  .hero-num .n { font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: 64px; letter-spacing: -0.02em; line-height: 1; }
+  .hero-num .u { color: var(--on-surface-muted); font-size: 14px; }
+  .slider { height: 8px; border-radius: 999px; background: var(--surface-variant); position: relative; margin: 26px 6px 6px; }
+  .slider i { position: absolute; inset: 0 46% 0 0; background: var(--primary); border-radius: 999px; }
+  .slider b { position: absolute; left: 54%; top: 50%; width: 24px; height: 24px; border-radius: 50%; background: var(--primary); transform: translate(-50%, -50%); box-shadow: var(--shadow-md); }
+  .slider-scale { display: flex; justify-content: space-between; font-size: 11px; color: var(--on-surface-muted); padding: 0 4px; }
+  .cta { display: grid; place-items: center; height: 52px; border-radius: 999px; background: var(--primary); color: var(--on-primary); font-weight: 600; font-size: 15px; margin-top: 22px; box-shadow: var(--shadow-md); }
+
+  /* fiche (direction 3) */
+  .fiche { border: 1px solid var(--outline); background: var(--surface); border-radius: 22px; padding: 18px 18px 8px; margin-top: 10px; }
+  .fiche p.line { font-family: "Fraunces", Georgia, serif; font-size: 19px; line-height: 2.1; margin: 0 0 6px; }
+  .blank { display: inline-block; min-width: 58px; text-align: center; border-bottom: 2px solid color-mix(in srgb, var(--primary) 45%, var(--outline)); font-weight: 600; color: var(--primary); font-style: italic; padding: 0 4px 1px; line-height: 1.3; }
+  .blank.txt { min-width: 88px; }
+  .fiche-note { font-size: 11px; color: var(--on-surface-muted); padding: 8px 2px 10px; }
+  .ledger { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 4px; }
+  .ledger caption { text-align: left; font-family: "Fraunces", Georgia, serif; font-size: 17px; font-weight: 600; padding: 10px 2px; }
+  .ledger th { text-align: right; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--on-surface-muted); font-weight: 600; padding: 4px 2px; }
+  .ledger th:first-child, .ledger td:first-child { text-align: left; }
+  .ledger td { padding: 7px 2px; border-top: 1px solid var(--outline); text-align: right; font-variant-numeric: tabular-nums; }
+  .ledger td b { font-weight: 700; }
+
+  /* cockpit (direction 4) */
+  .cockpit-hero { border-radius: 24px; background: color-mix(in srgb, var(--primary) 10%, var(--surface)); border: 1px solid color-mix(in srgb, var(--primary) 22%, var(--outline)); padding: 18px; text-align: center; margin-top: 8px; }
+  .cockpit-hero .n { font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: 52px; line-height: 1; letter-spacing: -0.02em; color: var(--primary); }
+  .cockpit-hero .u { font-size: 12px; font-weight: 600; color: var(--on-surface-muted); }
+  .macro-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin-top: 12px; }
+  .macro { background: var(--surface); border: 1px solid var(--outline); border-radius: 14px; padding: 8px 4px; }
+  .macro .mv { font-weight: 700; font-size: 15px; }
+  .macro .mk { font-size: 10px; color: var(--on-surface-muted); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+  .chip { display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--outline); background: var(--surface); border-radius: 999px; padding: 6px 11px; font-size: 12px; font-weight: 600; }
+  .chip .pen { color: var(--on-surface-muted); font-size: 10px; }
+
+  /* ---------- Tableau comparatif + reco ---------- */
+  .compare { padding: 72px 0 0; }
+  .compare h2, .verdict h2 { font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: 1.9rem; letter-spacing: -0.015em; margin: 0 0 18px; }
+  .table-scroll { overflow-x: auto; border: 1px solid var(--outline); border-radius: 20px; background: var(--surface); }
+  table.cmp { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 14px; }
+  .cmp th, .cmp td { padding: 12px 16px; text-align: left; border-top: 1px solid var(--outline); }
+  .cmp thead th { border-top: 0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--on-surface-muted); }
+  .cmp td.score { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .good { color: var(--primary); }
+  .mid { color: var(--on-surface-muted); }
+
+  .verdict { padding: 64px 0 80px; }
+  .verdict-card {
+    border: 1px solid color-mix(in srgb, var(--primary) 30%, var(--outline));
+    background: color-mix(in srgb, var(--primary) 7%, var(--surface));
+    border-radius: 24px; padding: 28px 30px; max-width: 760px;
+  }
+  .verdict-card p { margin: 10px 0 0; max-width: 62ch; }
+  .verdict-tag { display: inline-block; background: var(--primary); color: var(--on-primary); font-size: 12px; font-weight: 700; border-radius: 999px; padding: 5px 12px; letter-spacing: 0.04em; }
+  footer.doc-foot { padding: 0 0 56px; color: var(--on-surface-muted); font-size: 13px; }
+  footer.doc-foot .wrap { border-top: 1px solid var(--outline); padding-top: 20px; }
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&display=swap">
+
+<header class="doc">
+  <div class="wrap">
+    <div class="doc-brand"><span aria-hidden="true">🥗</span> SmartEat · proposition de design</div>
+    <h1>Le formulaire Diet Legacy, quatre pistes</h1>
+    <p class="lede">
+      Le calculateur Diet Legacy (Google Sheets) devient un onglet de SmartEat. Le moteur est
+      identique dans les quatre pistes : masse maigre (Boer), métabolisme de base (Katch-McArdle),
+      dépense totale par coefficient d'activité, puis un plan de <strong>8 semaines en perte</strong>
+      (recul de 1&nbsp;% par semaine) ou <strong>9 semaines en prise</strong> (hausse de 2&nbsp;%), avec
+      protéines fixées à 2&nbsp;g par kilo. Ce qui change ici, c'est l'architecture du formulaire :
+      comment on saisit, où vivent les résultats, ce qu'on retient de l'écran.
+    </p>
+    <div class="source-card tnum" role="note">
+      <span><span class="k">Profil de démonstration</span><span class="v">Homme · 178&nbsp;cm · 80&nbsp;kg · 36&nbsp;ans</span></span>
+      <span><span class="k">Coefficient</span><span class="v">1,45</span></span>
+      <span><span class="k">Objectif</span><span class="v">Perte, déficit 10&nbsp;%</span></span>
+      <span><span class="k">Résultat vérifié</span><span class="v">TDEE 2&nbsp;443 kcal · S1 2&nbsp;199 kcal</span></span>
+    </div>
+  </div>
+</header>
+
+<!-- ============================ 1. BILAN EXPRESS ============================ -->
+<section class="prop" id="bilan-express">
+  <div class="wrap">
+    <div class="prop-head">
+      <span class="prop-num" aria-hidden="true">1</span>
+      <h2>Bilan express</h2>
+      <p class="essence">Une seule page, cinq blocs numérotés comme la feuille d'origine, et un
+      résultat qui se met à jour pendant la saisie : pas de bouton « calculer », le TDEE vit sous tes doigts.</p>
+    </div>
+    <div class="prop-body">
+      <div class="prop-notes">
+        <h3>Architecture</h3>
+        <ul>
+          <li>Sexe en segmenté, mesures en trois champs compacts (taille, poids, âge), activité en cartes radio avec le coefficient visible.</li>
+          <li>La carte verte « en direct » affiche BMR et TDEE dès que les trois mesures sont saisies, avec compteur animé (CountUp existant).</li>
+          <li>Objectif, ajustement (pastilles 5&nbsp;% à 20&nbsp;%) et préférence alimentaire complètent le calcul ; le plan des semaines se déroule dessous.</li>
+        </ul>
+        <h3 class="plus">Ce qui joue pour</h3>
+        <ul class="plus">
+          <li>Le meilleur pour l'usage répété : changer un coefficient et voir l'effet immédiatement.</li>
+          <li>Réutilise tous les idiomes du site (cartes radio, pastilles, CountUp) : zéro apprentissage.</li>
+          <li>Aucun état « formulaire envoyé » à gérer, ni erreur de soumission.</li>
+        </ul>
+        <h3 class="minus">Ce qui joue contre</h3>
+        <ul class="minus">
+          <li>Page longue : la saisie et les résultats se partagent le même défilement.</li>
+          <li>Moins de mise en scène qu'un parcours guidé pour la toute première visite.</li>
+        </ul>
+      </div>
+      <div class="phone-col">
+        <div class="phone" role="img" aria-label="Maquette de la piste Bilan express : formulaire une page avec résultat en direct">
+          <div class="statusbar tnum"><span>9:41</span><span>●●●</span></div>
+          <div class="screen">
+            <p class="m-title">Calculateur diète</p>
+            <p class="m-sub">Ton plan calories &amp; macros, méthode Diet Legacy.</p>
+            <div class="m-label"><span class="n">1</span> TOI</div>
+            <div class="seg" aria-hidden="true"><span class="on">Homme</span><span>Femme</span></div>
+            <div class="fields tnum" style="margin-top:8px" aria-hidden="true">
+              <div class="field"><div class="fk">Taille</div><div class="fv">178 <small>cm</small></div></div>
+              <div class="field"><div class="fk">Poids</div><div class="fv">80 <small>kg</small></div></div>
+              <div class="field"><div class="fk">Âge</div><div class="fv">36 <small>ans</small></div></div>
+            </div>
+            <div class="m-label"><span class="n">2</span> ACTIVITÉ</div>
+            <div aria-hidden="true">
+              <div class="radio-card"><span class="dot"></span>4 à 6&nbsp;h modérées / semaine <span class="coef tnum">×1,35</span></div>
+              <div class="radio-card on"><span class="dot"></span>Plus de 9&nbsp;h modérées / semaine <span class="coef tnum">×1,45</span></div>
+            </div>
+            <div class="live-card tnum" aria-hidden="true">
+              <span class="big">2&nbsp;443</span><span class="unit">kcal / jour</span>
+              <span class="meta">BMR <b>1&nbsp;685</b> kcal<br>en direct</span>
+            </div>
+            <div class="m-label"><span class="n">3</span> OBJECTIF</div>
+            <div class="seg" aria-hidden="true"><span class="on">Perte de poids</span><span>Prise de masse</span></div>
+            <div class="m-label"><span class="n">4</span> DÉFICIT SUPPLÉMENTAIRE</div>
+            <div class="pills tnum" aria-hidden="true">
+              <span class="pill">Aucun</span><span class="pill">5&nbsp;%</span><span class="pill">7,5&nbsp;%</span><span class="pill on">10&nbsp;%</span><span class="pill">12,5&nbsp;%</span><span class="pill">15&nbsp;%</span>
+            </div>
+            <div class="m-label"><span class="n">5</span> TES 8 SEMAINES</div>
+            <div class="weeks tnum" aria-hidden="true">
+              <div class="week"><span class="wk" style="background:var(--day-1)">S1</span><div class="kcal">2&nbsp;199 <small>kcal</small></div><div class="macros">P 160 · G 244<br>L 65</div></div>
+              <div class="week"><span class="wk" style="background:var(--day-2)">S2</span><div class="kcal">2&nbsp;177 <small>kcal</small></div><div class="macros">P 160 · G 240<br>L 64</div></div>
+              <div class="week"><span class="wk" style="background:var(--day-3)">S3</span><div class="kcal">2&nbsp;155 <small>kcal</small></div><div class="macros">P 160 · G 237<br>L 63</div></div>
+            </div>
+          </div>
+        </div>
+        <p class="phone-caption">Saisie et plan sur le même écran, résultat recalculé à chaque geste.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 2. COACH ============================ -->
+<section class="prop" id="coach">
+  <div class="wrap">
+    <div class="prop-head">
+      <span class="prop-num" aria-hidden="true">2</span>
+      <h2>Coach</h2>
+      <p class="essence">Une question par écran, comme l'onboarding du site : cinq étapes courtes,
+      un gros chiffre par écran, puis la révélation du plan en fin de parcours.</p>
+    </div>
+    <div class="prop-body">
+      <div class="prop-notes">
+        <h3>Architecture</h3>
+        <ul>
+          <li>Toi → Activité → Objectif → Ajustement → Préférence, avec barre de progression et transitions latérales (AnimatePresence déjà en place).</li>
+          <li>Chaque mesure est un grand chiffre Fraunces piloté au curseur ou aux boutons + / −, dans l'esprit de l'étape « budget » de l'onboarding.</li>
+          <li>Dernier écran : compteur animé sur les kcal de la semaine 1, macros, puis les 8 semaines.</li>
+        </ul>
+        <h3 class="plus">Ce qui joue pour</h3>
+        <ul class="plus">
+          <li>Pédagogique : idéal pour la première utilisation, chaque notion est expliquée à son étape.</li>
+          <li>Continuité parfaite avec l'onboarding : le site a déjà ce langage.</li>
+          <li>La révélation finale crée un vrai moment (partage, capture d'écran).</li>
+        </ul>
+        <h3 class="minus">Ce qui joue contre</h3>
+        <ul class="minus">
+          <li>Modifier un seul champ ensuite oblige à retraverser le parcours (ou à doubler l'écran de résultats d'un mode édition).</li>
+          <li>Plus de code : deux surfaces à maintenir (parcours + résultats).</li>
+        </ul>
+      </div>
+      <div class="phone-col">
+        <div class="phone" role="img" aria-label="Maquette de la piste Coach : parcours une question par écran">
+          <div class="statusbar tnum"><span>9:41</span><span>●●●</span></div>
+          <div class="screen">
+            <div class="progress" aria-hidden="true"><i></i></div>
+            <p class="step-hint">Étape 3 sur 5</p>
+            <p class="m-title" style="text-align:center; margin-top:26px">Ton coefficient d'activité&nbsp;?</p>
+            <p class="m-sub" style="text-align:center">Compte tes heures d'activité modérée par semaine.</p>
+            <div class="hero-num tnum" aria-hidden="true">
+              <div class="n">×1,45</div>
+              <div class="u">plus de 9&nbsp;h / semaine</div>
+            </div>
+            <div class="slider" aria-hidden="true"><i></i><b></b></div>
+            <div class="slider-scale tnum" aria-hidden="true"><span>×1,2</span><span>×1,3</span><span>×1,35</span><span>×1,4</span><span>×1,45</span></div>
+            <div class="radio-card on" style="margin-top:24px" aria-hidden="true"><span class="dot"></span>Plus de 9&nbsp;h d'activités modérées <span class="coef tnum">TDEE 2&nbsp;443</span></div>
+            <div class="cta" aria-hidden="true">Continuer</div>
+          </div>
+        </div>
+        <p class="phone-caption">Le langage de l'onboarding Romi, appliqué au bilan diète.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 3. FICHE MESURE ============================ -->
+<section class="prop" id="fiche-mesure">
+  <div class="wrap">
+    <div class="prop-head">
+      <span class="prop-num" aria-hidden="true">3</span>
+      <h2>Fiche mesure</h2>
+      <p class="essence">Le carnet du coach : un formulaire-phrase en Fraunces où l'on complète les
+      trous, et un plan présenté comme un relevé, ligne à ligne.</p>
+    </div>
+    <div class="prop-body">
+      <div class="prop-notes">
+        <h3>Architecture</h3>
+        <ul>
+          <li>La saisie est une phrase : « Je suis un homme, je mesure 178&nbsp;cm… ». Chaque trou est un champ inline (chiffre basilic italique, souligné).</li>
+          <li>Coefficient, objectif et préférence en menus inline dans la même phrase.</li>
+          <li>Les semaines forment un relevé typographique : colonnes kcal / P / G / L, filets fins, chiffres tabulaires.</li>
+        </ul>
+        <h3 class="plus">Ce qui joue pour</h3>
+        <ul class="plus">
+          <li>Le plus fort caractère de marque : la « Fraîcheur éditoriale » poussée jusqu'au formulaire.</li>
+          <li>Excellente lisibilité du plan : huit lignes se comparent mieux en tableau qu'en cartes.</li>
+          <li>Mémorable : aucun autre calculateur ne ressemble à ça.</li>
+        </ul>
+        <h3 class="minus">Ce qui joue contre</h3>
+        <ul class="minus">
+          <li>Champs inline exigeants sur mobile : cibles tactiles, clavier numérique, accessibilité à soigner de près.</li>
+          <li>La phrase se traduit mal si le site devient multilingue.</li>
+          <li>Moins scannable pour qui veut juste changer un pourcentage.</li>
+        </ul>
+      </div>
+      <div class="phone-col">
+        <div class="phone" role="img" aria-label="Maquette de la piste Fiche mesure : formulaire-phrase éditorial et relevé des semaines">
+          <div class="statusbar tnum"><span>9:41</span><span>●●●</span></div>
+          <div class="screen">
+            <p class="m-title">Ma fiche diète</p>
+            <p class="m-sub">Complète la fiche, le plan s'écrit dessous.</p>
+            <div class="fiche" aria-hidden="true">
+              <p class="line">Je suis <span class="blank txt">un homme</span>, je mesure
+              <span class="blank tnum">178</span> cm pour <span class="blank tnum">80</span> kg,
+              et j'ai <span class="blank tnum">36</span> ans.</p>
+              <p class="line">Je bouge <span class="blank txt">plus de 9&nbsp;h</span> par semaine et je vise
+              une <span class="blank txt">perte</span> de <span class="blank tnum">10&nbsp;%</span>.</p>
+              <div class="fiche-note tnum">Masse maigre 60,9&nbsp;kg · BMR 1&nbsp;685 kcal · TDEE 2&nbsp;443 kcal</div>
+            </div>
+            <table class="ledger tnum" aria-hidden="true">
+              <caption>Le relevé des 8 semaines</caption>
+              <thead><tr><th>Sem.</th><th>kcal</th><th>Prot.</th><th>Gluc.</th><th>Lip.</th></tr></thead>
+              <tbody>
+                <tr><td>S1</td><td><b>2&nbsp;199</b></td><td>160</td><td>244</td><td>65</td></tr>
+                <tr><td>S2</td><td><b>2&nbsp;177</b></td><td>160</td><td>240</td><td>64</td></tr>
+                <tr><td>S3</td><td><b>2&nbsp;155</b></td><td>160</td><td>237</td><td>63</td></tr>
+                <tr><td>S4</td><td><b>2&nbsp;134</b></td><td>160</td><td>233</td><td>62</td></tr>
+                <tr><td>S5</td><td><b>2&nbsp;112</b></td><td>160</td><td>230</td><td>61</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <p class="phone-caption">Le formulaire devient une phrase ; le plan, un relevé.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 4. COCKPIT ============================ -->
+<section class="prop" id="cockpit">
+  <div class="wrap">
+    <div class="prop-head">
+      <span class="prop-num" aria-hidden="true">4</span>
+      <h2>Cockpit</h2>
+      <p class="essence">Les résultats d'abord : le nombre du jour en héros, tes réglages réduits à
+      une rangée de pastilles éditables, la timeline des semaines en cartes à faire défiler.</p>
+    </div>
+    <div class="prop-body">
+      <div class="prop-notes">
+        <h3>Architecture</h3>
+        <ul>
+          <li>Héros : kcal de la semaine courante en très grand, macros en trois tuiles dessous (idiome de la carte nutrition des recettes).</li>
+          <li>Chaque réglage (sexe, taille, poids, âge, coefficient, objectif, préférence) est une pastille ; toucher ouvre un panneau bas pour modifier.</li>
+          <li>Timeline horizontale des 8 ou 9 semaines en cartes « snap », semaine courante mise en avant.</li>
+        </ul>
+        <h3 class="plus">Ce qui joue pour</h3>
+        <ul class="plus">
+          <li>Pensé pour la vie du plan : on revient chaque semaine voir « son chiffre », pas re-saisir.</li>
+          <li>Écran dense mais hiérarchisé : tout l'état visible d'un regard.</li>
+          <li>Prépare la suite produit (brancher les kcal sur la génération de repas).</li>
+        </ul>
+        <h3 class="minus">Ce qui joue contre</h3>
+        <ul class="minus">
+          <li>La première saisie passe par des panneaux successifs : moins fluide qu'un formulaire.</li>
+          <li>Le panneau bas est un composant nouveau à construire et à rendre accessible.</li>
+        </ul>
+      </div>
+      <div class="phone-col">
+        <div class="phone" role="img" aria-label="Maquette de la piste Cockpit : résultats en héros et réglages en pastilles">
+          <div class="statusbar tnum"><span>9:41</span><span>●●●</span></div>
+          <div class="screen">
+            <p class="m-title">Ma diète</p>
+            <p class="m-sub">Semaine 1 sur 8 · perte de poids</p>
+            <div class="cockpit-hero tnum" aria-hidden="true">
+              <div class="n">2&nbsp;199</div>
+              <div class="u">kcal / jour cette semaine</div>
+              <div class="macro-row">
+                <div class="macro"><div class="mv">160&nbsp;g</div><div class="mk">Protéines</div></div>
+                <div class="macro"><div class="mv">244&nbsp;g</div><div class="mk">Glucides</div></div>
+                <div class="macro"><div class="mv">65&nbsp;g</div><div class="mk">Lipides</div></div>
+              </div>
+            </div>
+            <div class="chips tnum" aria-hidden="true">
+              <span class="chip">Homme <span class="pen">✎</span></span>
+              <span class="chip">178&nbsp;cm <span class="pen">✎</span></span>
+              <span class="chip">80&nbsp;kg <span class="pen">✎</span></span>
+              <span class="chip">36&nbsp;ans <span class="pen">✎</span></span>
+              <span class="chip">×1,45 <span class="pen">✎</span></span>
+              <span class="chip">Déficit 10&nbsp;% <span class="pen">✎</span></span>
+            </div>
+            <div class="m-label" style="margin-top:16px">LES SEMAINES SUIVANTES</div>
+            <div class="weeks tnum" aria-hidden="true">
+              <div class="week"><span class="wk" style="background:var(--day-2)">S2</span><div class="kcal">2&nbsp;177 <small>kcal</small></div><div class="macros">P 160 · G 240<br>L 64</div></div>
+              <div class="week"><span class="wk" style="background:var(--day-3)">S3</span><div class="kcal">2&nbsp;155 <small>kcal</small></div><div class="macros">P 160 · G 237<br>L 63</div></div>
+              <div class="week"><span class="wk" style="background:var(--day-4)">S4</span><div class="kcal">2&nbsp;134 <small>kcal</small></div><div class="macros">P 160 · G 233<br>L 62</div></div>
+            </div>
+          </div>
+        </div>
+        <p class="phone-caption">Le plan d'abord ; la saisie devient un réglage.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ COMPARATIF ============================ -->
+<section class="compare">
+  <div class="wrap">
+    <h2>D'un regard</h2>
+    <div class="table-scroll">
+      <table class="cmp">
+        <thead>
+          <tr><th>Critère</th><th>1 · Bilan express</th><th>2 · Coach</th><th>3 · Fiche mesure</th><th>4 · Cockpit</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Première saisie</td><td class="score good">Rapide</td><td class="score good">Très guidée</td><td class="score mid">Singulière</td><td class="score mid">En panneaux</td></tr>
+          <tr><td>Usage répété (ajuster)</td><td class="score good">Excellent</td><td class="score mid">Laborieux</td><td class="score mid">Correct</td><td class="score good">Excellent</td></tr>
+          <tr><td>Caractère de marque</td><td class="score mid">Fidèle</td><td class="score mid">Fidèle</td><td class="score good">Maximal</td><td class="score mid">Fidèle</td></tr>
+          <tr><td>Lisibilité du plan 8-9 sem.</td><td class="score good">Cartes</td><td class="score mid">Fin de parcours</td><td class="score good">Tableau</td><td class="score good">Timeline</td></tr>
+          <tr><td>Risque accessibilité</td><td class="score good">Faible</td><td class="score good">Faible</td><td class="score mid">À soigner</td><td class="score mid">Panneau bas</td></tr>
+          <tr><td>Coût de développement</td><td class="score good">1 surface</td><td class="score mid">2 surfaces</td><td class="score mid">Composants inline</td><td class="score mid">Panneau + timeline</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ RECOMMANDATION ============================ -->
+<section class="verdict">
+  <div class="wrap">
+    <h2>Recommandation</h2>
+    <div class="verdict-card">
+      <span class="verdict-tag">PISTE 1 · BILAN EXPRESS</span>
+      <p>
+        Un calculateur se rejoue : on change un coefficient, on teste un déficit, on compare.
+        La piste 1 rend chaque ajustement instantané, réutilise les composants existants et
+        reste simple à maintenir. On lui greffe le meilleur des autres pistes : le compteur
+        animé de la révélation (piste 2) sur la carte « en direct », et la timeline de semaines
+        en cartes colorées (piste 4) pour le plan.
+      </p>
+      <p>
+        Les pistes 3 et 4 restent de bonnes évolutions : la fiche éditoriale comme habillage
+        d'une future page « mon suivi », le cockpit quand le plan pilotera la génération de repas.
+      </p>
+    </div>
+  </div>
+</section>
+
+<footer class="doc-foot">
+  <div class="wrap tnum">
+    Moteur vérifié contre le classeur « Calculateur Diet Legacy » (profils Homme, Femme et secours reproduits à la kcal près).
+    Valeurs de démonstration réelles : Homme 178&nbsp;cm / 80&nbsp;kg / 36&nbsp;ans, coefficient 1,45, déficit 10&nbsp;%.
+  </div>
+</footer>
