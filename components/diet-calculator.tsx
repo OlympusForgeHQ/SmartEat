@@ -108,7 +108,10 @@ export function DietCalculator() {
   const perte = draft.objectif === "perte";
 
   return (
-    <div>
+    // Mobile : une colonne. Desktop (lg) : formulaire à gauche, plan sticky à
+    // droite — chaque réglage se reflète sans défilement (piste Bilan express).
+    <div className="lg:grid lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] lg:items-start lg:gap-14">
+      <div>
       {/* ---------- 1. TOI ---------- */}
       <SectionLabel n={1} title="Toi" />
       <Segmented
@@ -195,7 +198,7 @@ export function DietCalculator() {
             animate={{ opacity: 1, y: 0, height: "auto" }}
             exit={{ opacity: 0, y: 10, height: 0 }}
             transition={{ duration: 0.3, ease: EASE }}
-            className="overflow-hidden"
+            className="overflow-hidden lg:hidden"
           >
             <div className="mt-5 flex items-baseline gap-2 rounded-[var(--radius-card)] border border-primary/25 bg-primary/10 px-5 py-4">
               <CountUp
@@ -244,7 +247,7 @@ export function DietCalculator() {
       <div
         role="group"
         aria-label={perte ? "Déficit calorique supplémentaire" : "Surplus calorique supplémentaire"}
-        className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:mx-0 lg:flex-wrap lg:overflow-visible lg:px-0"
       >
         {AJUSTEMENTS.map((a) => {
           const on = draft.ajustement === a;
@@ -283,8 +286,10 @@ export function DietCalculator() {
         Répartit les calories restantes après tes protéines (fixées à 2 g par kilo).
       </p>
 
-      {/* ---------- PLAN ---------- */}
-      <div className="mt-10">
+      </div>
+
+      {/* ---------- PLAN — panneau permanent à droite sur desktop ---------- */}
+      <div className="mt-10 lg:sticky lg:top-10 lg:mt-0">
         {plan ? (
           <PlanResultats
             plan={plan}
@@ -369,7 +374,12 @@ function PlanResultats({
 
       {/* Timeline horizontale des semaines */}
       <Stagger
-        className="-mx-5 mt-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className={cn(
+          "-mx-5 mt-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+          // Desktop : grille sans défilement, rangées pleines (8 sem -> 4x2, 9 sem -> 3x3)
+          "lg:mx-0 lg:grid lg:overflow-visible lg:px-0",
+          plan.semaines.length === 9 ? "lg:grid-cols-3" : "lg:grid-cols-4",
+        )}
         role="list"
         aria-label="Calories et macros par semaine"
       >
@@ -377,7 +387,7 @@ function PlanResultats({
           <StaggerItem
             key={s.numero}
             role="listitem"
-            className="w-[136px] shrink-0 snap-start rounded-[var(--radius-card)] border border-outline bg-surface p-3.5"
+            className="w-[136px] shrink-0 snap-start rounded-[var(--radius-card)] border border-outline bg-surface p-3.5 lg:w-auto"
           >
             <span
               className={cn(
@@ -396,15 +406,15 @@ function PlanResultats({
             <dl className="tnum mt-2.5 space-y-1 text-xs text-on-surface-muted">
               <div className="flex justify-between">
                 <dt>Protéines</dt>
-                <dd className="font-semibold text-on-surface">{s.proteinesG} g</dd>
+                <dd className="whitespace-nowrap font-semibold text-on-surface">{s.proteinesG} g</dd>
               </div>
               <div className="flex justify-between">
                 <dt>Glucides</dt>
-                <dd className="font-semibold text-on-surface">{s.glucidesG} g</dd>
+                <dd className="whitespace-nowrap font-semibold text-on-surface">{s.glucidesG} g</dd>
               </div>
               <div className="flex justify-between">
                 <dt>Lipides</dt>
-                <dd className="font-semibold text-on-surface">{s.lipidesG} g</dd>
+                <dd className="whitespace-nowrap font-semibold text-on-surface">{s.lipidesG} g</dd>
               </div>
             </dl>
           </StaggerItem>

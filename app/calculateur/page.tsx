@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 // (calcul en direct, aucune donnée à charger).
 export default function CalculateurPage() {
   return (
-    <main className="mx-auto w-full max-w-md px-5 py-8 pb-28">
+    <main className="mx-auto w-full max-w-md px-5 py-8 pb-28 lg:max-w-6xl lg:px-8 lg:py-12">
       <Link
         href="/"
         className="inline-flex min-h-11 items-center gap-1 text-sm text-on-surface-muted hover:text-on-surface"
@@ -21,15 +21,15 @@ export default function CalculateurPage() {
         <ChevronLeft size={16} /> Accueil
       </Link>
 
-      <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight">
+      <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight lg:text-4xl">
         Calculateur diète
       </h1>
-      <p className="mt-1 text-sm text-on-surface-muted">
+      <p className="mt-1 text-sm text-on-surface-muted lg:text-base">
         Ton plan calories &amp; macros, méthode Diet Legacy. Le résultat se met à jour pendant que
         tu remplis.
       </p>
 
-      <div className="mt-7">
+      <div className="mt-7 lg:mt-10">
         <DietCalculator />
       </div>
     </main>
