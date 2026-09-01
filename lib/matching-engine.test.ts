@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { INGREDIENTS, RECIPES, STORES } from "@/db/seed-data";
-import { PROTEIN_MIN } from "./labels";
+import { PROTEIN_MIN, PROTEIN_MIN_COLLATION } from "./labels";
 import { canCook } from "./capabilities";
 import { eligibleRecipes, planWeek } from "./matching-engine";
 import { recipeCostPerServing } from "./pricing";
@@ -177,5 +177,74 @@ describe("Recipe Matching Engine — combinatoire intelligente", () => {
     for (const set of byDay.values()) {
       expect(set.has("petit_dej") && set.has("dejeuner")).toBe(true);
     }
+  });
+});
+
+describe("Moment collation", () => {
+  const prefsAvecCollation: UserPrefs = {
+    ...basePrefs,
+    mealSlots: ["petit_dej", "dejeuner", "collation", "diner"],
+  };
+
+  it("le catalogue propose des collations, toutes légères", () => {
+    const collations = RECIPES.filter((r) => r.slots.includes("collation"));
+    expect(collations.length).toBeGreaterThanOrEqual(10);
+    for (const r of collations) {
+      // Une collation reste un en-cas : jamais le poids d'un repas principal.
+      expect(r.nutrition.kcal).toBeLessThanOrEqual(400);
+      expect(r.nutrition.kcal).toBeGreaterThan(100);
+      // Elles ne servent que le goûter (le petit-déj a son propre catalogue).
+      expect(r.slots).toEqual(["collation"]);
+    }
+  });
+
+  it("reste des collations éligibles même avec l'ambiance « Riche en protéines »", () => {
+    const request: GenerationRequest = { budget: 200, mealTypes: ["proteine"] };
+    const eligible = eligibleRecipes(RECIPES, prefsAvecCollation, request);
+    const collations = eligible.filter((r) => r.slots.includes("collation"));
+    expect(collations.length).toBeGreaterThan(0);
+    // Le seuil appliqué est celui d'une collation, pas celui d'un repas.
+    for (const r of collations) {
+      expect(r.nutrition.protein).toBeGreaterThanOrEqual(PROTEIN_MIN_COLLATION);
+      expect(r.nutrition.protein).toBeLessThan(PROTEIN_MIN);
+    }
+  });
+
+  it("planifie quatre repas par jour quand la collation est demandée", () => {
+    const plan = planWeek(
+      RECIPES,
+      prefsAvecCollation,
+      { budget: 400, mealTypes: [] },
+      ingredientsById,
+      store,
+    );
+    expect(plan.plannedDays).toBeGreaterThan(0);
+    const jour0 = plan.meals.filter((m) => m.day === 0);
+    expect(jour0).toHaveLength(4);
+    expect(jour0.map((m) => m.slot)).toContain("collation");
+    // Le repas placé en collation vient bien du catalogue collation.
+    const collation = jour0.find((m) => m.slot === "collation")!;
+    expect(collation.recipe.slots).toContain("collation");
+  });
+
+  it("une cible calorique donne une collation plus légère que le dîner", () => {
+    const plan = planWeek(
+      RECIPES,
+      prefsAvecCollation,
+      {
+        budget: 400,
+        mealTypes: [],
+        nutrition: { kcal: 2199, proteinesG: 160, glucidesG: 244, lipidesG: 65 },
+      },
+      ingredientsById,
+      store,
+    );
+    const jour0 = plan.meals.filter((m) => m.day === 0);
+    const kcal = (slot: string) => {
+      const m = jour0.find((x) => x.slot === slot)!;
+      return m.recipe.nutrition.kcal * m.factor;
+    };
+    expect(kcal("collation")).toBeLessThan(kcal("diner"));
+    expect(kcal("collation")).toBeLessThan(kcal("dejeuner"));
   });
 });

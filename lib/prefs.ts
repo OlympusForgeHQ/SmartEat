@@ -33,7 +33,7 @@ const prefsSchema = z.object({
   ambiance: z.array(z.enum(MEAL_TYPE_ENUM)).default([]),
   // Moments à planifier (petit-déj / déjeuner / dîner). Défaut : midi + soir.
   mealSlots: z
-    .array(z.enum(["petit_dej", "dejeuner", "diner"]))
+    .array(z.enum(["petit_dej", "dejeuner", "collation", "diner"]))
     .default(["dejeuner", "diner"]),
   // Allergènes / aliments à éviter (ids d'ingrédients) — exclus du moteur.
   excludedIngredients: z.array(z.string()).default([]),

@@ -20,9 +20,13 @@ export interface NutritionTarget {
 
 // Répartition des calories sur la journée (classique en diététique).
 // Renormalisée sur les seuls moments que l'utilisateur planifie.
+// Les trois repas principaux somment à 1 : sans collation, la répartition
+// classique est conservée à l'identique. La collation s'ajoute comme part
+// supplémentaire et dilue les autres proportionnellement (renormalisation).
 const SLOT_SHARE: Record<MealSlot, number> = {
   petit_dej: 0.25,
   dejeuner: 0.4,
+  collation: 0.12,
   diner: 0.35,
 };
 

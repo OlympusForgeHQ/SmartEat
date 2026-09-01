@@ -80,6 +80,14 @@ Conventions de mise en page POUR TOUTES LES PAGES restylées :
 Français, tutoiement, phrases courtes, emojis avec parcimonie (1 par carte max).
 Jamais de jargon technique visible.
 
+## 6 bis. Moments du repas (tokens `--slot-*`)
+
+Quatre moments existent : `--slot-petit-dej` (safran), `--slot-dejeuner`
+(basilic), `--slot-collation` (menthe, ajouté avec le moment collation) et
+`--slot-diner` (violet nuit). Toute nouvelle valeur doit être déclarée dans les
+QUATRE blocs de thème de `app/globals.css` (clair, sombre système, `[data-theme]`
+sombre et clair), comme les trois autres.
+
 ## 7. Garde-fous techniques
 
 - Tokens et `app/globals.css` : propriété de l'orchestrateur, ne pas éditer.

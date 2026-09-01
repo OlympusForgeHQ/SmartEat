@@ -49,6 +49,19 @@ describe("répartition des calories sur la journée", () => {
     expect(parts.has("petit_dej")).toBe(false);
   });
 
+  it("ajoute la collation sans dénaturer les trois repas", () => {
+    const parts = slotShares(["petit_dej", "dejeuner", "collation", "diner"]);
+    expect([...parts.values()].reduce((a, b) => a + b, 0)).toBeCloseTo(1, 5);
+    // La collation reste le plus petit moment de la journée.
+    const collation = parts.get("collation")!;
+    for (const s of ["petit_dej", "dejeuner", "diner"] as const) {
+      expect(collation).toBeLessThan(parts.get(s)!);
+    }
+    // Les trois repas gardent leurs proportions relatives (0,25 / 0,40 / 0,35).
+    expect(parts.get("dejeuner")! / parts.get("petit_dej")!).toBeCloseTo(0.4 / 0.25, 5);
+    expect(parts.get("diner")! / parts.get("petit_dej")!).toBeCloseTo(0.35 / 0.25, 5);
+  });
+
   it("retombe sur midi + soir si aucun moment n'est fourni", () => {
     const parts = slotShares([]);
     expect([...parts.keys()]).toEqual(["dejeuner", "diner"]);

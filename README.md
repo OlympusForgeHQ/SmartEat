@@ -23,7 +23,9 @@ magasins) est seedé en mémoire. Aucune variable d'environnement n'est requise.
 1. **Onboarding** (`/onboarding`) — capture une seule fois les préférences durables
    (magasin, régime, équipement, foyer), stockées en cookie.
 2. **Plan** (`/plan`) — repas pré-générés (warm start) ; ajuster budget/type, swapper
-   un repas, puis générer la liste. **≤ 3 clics.**
+   un repas, puis générer la liste. **≤ 3 clics.** Quatre moments planifiables :
+   petit-déjeuner, déjeuner, **collation** (goûter, 14 recettes légères dédiées)
+   et dîner — la collation est optionnelle et se choisit à l'onboarding.
 3. **Liste** (`/list`) — articles agrégés, groupés par rayon, coût estimé, export.
 4. **Diète** (`/calculateur`) — calculateur Diet Legacy : BMR/TDEE en direct puis plan
    calories & macros sur 8-9 semaines (moteur vérifié dans `lib/diet-calculator.ts`,

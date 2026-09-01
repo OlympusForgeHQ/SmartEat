@@ -30,9 +30,11 @@ export type MealType =
   | "monde";
 
 // Moment de la journée auquel un repas a du sens. L'utilisateur choisit les
-// moments à planifier (petit-déj / déjeuner / dîner) et le moteur ne propose
-// que des recettes adaptées au moment, en équilibrant la semaine entre eux.
-export type MealSlot = "petit_dej" | "dejeuner" | "diner";
+// moments à planifier (petit-déj / déjeuner / collation / dîner) et le moteur ne
+// propose que des recettes adaptées au moment, en équilibrant la semaine entre
+// eux. La collation (goûter) est volontairement légère : elle sert surtout à
+// atteindre une cible calorique élevée sans alourdir les trois repas.
+export type MealSlot = "petit_dej" | "dejeuner" | "collation" | "diner";
 
 export type DietTag =
   | "halal"

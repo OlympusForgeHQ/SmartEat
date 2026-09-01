@@ -39,7 +39,12 @@ export const MEAL_TYPE_LABELS: Record<MealType, { label: string; emoji: string }
 
 // Protéines minimales par portion exigées quand l'ambiance "Riche en protéines"
 // est demandée (le moteur ne retient alors que des repas >= ce seuil).
-export const PROTEIN_MIN = 35; // g / portion
+export const PROTEIN_MIN = 35; // g / portion (repas principal)
+
+// Une collation pèse ~12 % de la journée : lui appliquer le seuil d'un repas
+// principal la rendrait toujours inéligible, et l'ambiance « Riche en
+// protéines » viderait le moment collation (donc tout le plan).
+export const PROTEIN_MIN_COLLATION = 12; // g / portion
 
 // Moments de la journée. `short` sert l'onglet vertical de la carte jour ;
 // `color` pointe vers les variables CSS du design system (--slot-*) pour
@@ -50,11 +55,12 @@ export const MEAL_SLOT_LABELS: Record<
 > = {
   petit_dej: { label: "Petit-déjeuner", short: "P-déj", emoji: "🥐", color: "var(--slot-petit-dej)" },
   dejeuner: { label: "Déjeuner", short: "Déj", emoji: "🍽️", color: "var(--slot-dejeuner)" },
+  collation: { label: "Collation", short: "Collation", emoji: "🍎", color: "var(--slot-collation)" },
   diner: { label: "Dîner", short: "Dîner", emoji: "🌙", color: "var(--slot-diner)" },
 };
 
 // Ordre d'affichage des moments dans le plan (matin -> soir).
-export const MEAL_SLOT_ORDER: MealSlot[] = ["petit_dej", "dejeuner", "diner"];
+export const MEAL_SLOT_ORDER: MealSlot[] = ["petit_dej", "dejeuner", "collation", "diner"];
 
 // Ambiances de l'onboarding (cartes PASTEL façon Romi). On mappe vers les
 // MealType du moteur. `tint` = classes de fond/accent pastel (jusqu'à 3 choix).

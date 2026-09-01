@@ -58,6 +58,7 @@
   /* Moments du repas — onglet coloré des cartes jour */
   --slot-petit-dej: #e0a12f;  /* matin — safran */
   --slot-dejeuner: #1b7a4e;   /* midi — basilic */
+  --slot-collation: #1f9e8e;  /* goûter — menthe */
   --slot-diner: #6b5bd6;      /* soir — violet nuit */
 
   /* Palette des 7 jours (pastille J1..J7 du plan hebdo) */
@@ -119,6 +120,7 @@
     --background: #12100c;
     --slot-petit-dej: #f2b84b;
     --slot-dejeuner: #46c483;
+    --slot-collation: #48c4b4;
     --slot-diner: #8b7ef0;
     --day-1: #46c483;  --day-2: #5da8de;  --day-3: #f2b84b;  --day-4: #a98af0;
     --day-5: #ee85b5;  --day-6: #48c4b4;  --day-7: #f0985e;
@@ -142,6 +144,7 @@
   --background: #12100c;
   --slot-petit-dej: #f2b84b;
   --slot-dejeuner: #46c483;
+  --slot-collation: #48c4b4;
   --slot-diner: #8b7ef0;
   --day-1: #46c483;  --day-2: #5da8de;  --day-3: #f2b84b;  --day-4: #a98af0;
   --day-5: #ee85b5;  --day-6: #48c4b4;  --day-7: #f0985e;
@@ -163,6 +166,7 @@
   --background: #faf6ee;
   --slot-petit-dej: #e0a12f;
   --slot-dejeuner: #1b7a4e;
+  --slot-collation: #1f9e8e;
   --slot-diner: #6b5bd6;
   --day-1: #1b7a4e;  --day-2: #2e7fbe;  --day-3: #e0a12f;  --day-4: #8a5cd6;
   --day-5: #d6558e;  --day-6: #1f9e8e;  --day-7: #e0742f;

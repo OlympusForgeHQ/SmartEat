@@ -1,7 +1,7 @@
 import type { GenerationRequest, Ingredient, MealSlot, Recipe, Store, UserPrefs } from "./types";
 import type { NutritionTarget } from "./nutrition-target";
 import { userCapabilities } from "./capabilities";
-import { MEAL_SLOT_ORDER, PROTEIN_MIN } from "./labels";
+import { MEAL_SLOT_ORDER, PROTEIN_MIN, PROTEIN_MIN_COLLATION } from "./labels";
 import { recipeCostPerServing } from "./pricing";
 import { buildShoppingList, type MealPortion } from "./shopping-list";
 import { portionFactor, slotKcalTargets, slotShares, targetAffinity } from "./nutrition-target";
@@ -85,8 +85,12 @@ export function eligibleRecipes(
     const excludeOk = excluded.size === 0 || !r.ingredients.some((ri) => excluded.has(ri.ingredientId));
     // Moment de la journée : la recette doit couvrir au moins un moment demandé.
     const slotOk = r.slots.some((s) => slots.includes(s));
-    // Seuil protéines (≥ 40 g / portion) si l'ambiance protéinée est demandée.
-    const proteinOk = !wantProtein || r.nutrition.protein >= PROTEIN_MIN;
+    // Seuil protéines si l'ambiance protéinée est demandée — proportionné au
+    // moment : une collation ne peut pas peser autant qu'un repas principal.
+    const seuilProteines = r.slots.every((s) => s === "collation")
+      ? PROTEIN_MIN_COLLATION
+      : PROTEIN_MIN;
+    const proteinOk = !wantProtein || r.nutrition.protein >= seuilProteines;
     return dietOk && equipOk && typeOk && excludeOk && slotOk && proteinOk;
   });
 }
