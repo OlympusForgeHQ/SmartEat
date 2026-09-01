@@ -25,6 +25,9 @@ magasins) est seedé en mémoire. Aucune variable d'environnement n'est requise.
 2. **Plan** (`/plan`) — repas pré-générés (warm start) ; ajuster budget/type, swapper
    un repas, puis générer la liste. **≤ 3 clics.**
 3. **Liste** (`/list`) — articles agrégés, groupés par rayon, coût estimé, export.
+4. **Diète** (`/calculateur`) — calculateur Diet Legacy : BMR/TDEE en direct puis plan
+   calories & macros sur 8-9 semaines (moteur vérifié dans `lib/diet-calculator.ts`,
+   100 % client, saisie reprise en localStorage).
 
 ## Architecture (le cœur : `lib/`)
 
@@ -48,10 +51,12 @@ n'obtient jamais de recette nécessitant le Four).
 
 ## Déploiement Vercel
 
-Voir la checklist complète en §6 du cahier des charges. En bref :
-`vercel.json` fixe la région `fra1`, et le MVP se déploie tel quel (aucune
-variable d'environnement requise). Le passage à Supabase se fait en réécrivant
-`lib/repo.ts` et en renseignant les variables de `.env.example`.
+Le repo est relié au projet Vercel `smarteat-app` : chaque push déclenche un
+déploiement (aperçu pour les branches, production pour `main`). `vercel.json`
+fixe la région `fra1`, et le MVP se déploie tel quel (aucune variable
+d'environnement requise — mode invité). Le passage à Supabase se fait en
+renseignant les variables de `.env.example` dans les réglages du projet ;
+checklist complète en §6 du cahier des charges.
 
 ## Stack
 
