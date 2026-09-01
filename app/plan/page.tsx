@@ -10,7 +10,8 @@ import {
   toDayGrid,
   type PlannedMeal,
 } from "@/lib/matching-engine";
-import { buildShoppingList } from "@/lib/shopping-list";
+import { buildShoppingList, type MealPortion } from "@/lib/shopping-list";
+import { dayTotals, targetParams } from "@/lib/nutrition-target";
 import { recipeMealCost } from "@/lib/pricing";
 import { getPriceBook } from "@/lib/prices/price-book";
 import { getCurrentUser } from "@/lib/supabase/server";
@@ -19,12 +20,20 @@ import { PlanView, type PlanViewData } from "@/components/plan-view";
 
 type SearchParams = Record<string, string | string[] | undefined>;
 
-function planHref(budget: number, types: string[], meals: string[], seed?: number) {
+function planHref(
+  budget: number,
+  types: string[],
+  meals: string[],
+  target: Record<string, string>,
+  seed?: number,
+) {
   const params = new URLSearchParams();
   params.set("budget", String(budget));
   if (types.length) params.set("types", types.join(","));
   if (meals.length) params.set("meals", meals.join(","));
   if (seed) params.set("seed", String(seed));
+  // La cible du calculateur reste attachée au plan (échange, régénération, liste).
+  for (const [k, v] of Object.entries(target)) params.set(k, v);
   return `/plan?${params.toString()}`;
 }
 
@@ -58,7 +67,7 @@ export default async function PlanPage({
   let withinBudget = true;
   let plannedDays = 0;
   if (presetIds.length) {
-    meals = toDayGrid(buildPlanFromIds(presetIds, recipes), selectedSlots);
+    meals = toDayGrid(buildPlanFromIds(presetIds, recipes), selectedSlots, request.nutrition);
     plannedDays = new Set(meals.map((m) => m.day)).size;
   } else {
     const plan = planWeek(recipes, prefs, request, ingredientsMap, store, priceBook.unit);
@@ -69,7 +78,46 @@ export default async function PlanPage({
   const selected = meals.map((m) => m.recipe);
   const selectedIds = selected.map((r) => r.id);
 
-  const list = buildShoppingList(selected, ingredientsMap, prefs.householdSize, store, priceBook.unit);
+  // Panier : quantités au prorata des portions réellement servies (une cible
+  // calorique haute fait manger 1,4 portion -> il faut acheter en conséquence).
+  const portions: MealPortion[] = meals.map((m) => ({ recipe: m.recipe, factor: m.factor }));
+  const list = buildShoppingList(portions, ingredientsMap, prefs.householdSize, store, priceBook.unit);
+
+  // Cible du calculateur : moyenne réellement atteinte par jour et par personne.
+  const target = request.nutrition;
+  const tParams = targetParams(target);
+  const dayCount = Math.max(1, new Set(meals.map((m) => m.day)).size);
+  const totals = dayTotals(portions);
+  // Semaine incomplète avec une cible : le budget, pas le catalogue, est le
+  // facteur limitant (les portions ajustées coûtent plus cher). On chiffre la
+  // semaine entière à cette cible pour proposer un budget qui la couvre —
+  // sinon l'utilisateur ne peut que deviner.
+  let budgetSemaine: number | null = null;
+  if (target && !withinBudget && !presetIds.length) {
+    const complet = planWeek(
+      recipes,
+      prefs,
+      { ...request, budget: Number.MAX_SAFE_INTEGER },
+      ingredientsMap,
+      store,
+      priceBook.unit,
+    );
+    if (complet.withinBudget) budgetSemaine = Math.ceil(complet.total / 5) * 5;
+  }
+
+  const nutritionTarget = target
+    ? {
+        kcalCible: Math.round(target.kcal),
+        kcalAtteint: Math.round(totals.kcal / dayCount),
+        proteinesCible: Math.round(target.proteinesG),
+        proteinesAtteint: Math.round(totals.proteinesG / dayCount),
+        resetHref: planHref(request.budget, request.mealTypes, [], {}),
+        budgetSemaine,
+        budgetHref: budgetSemaine
+          ? planHref(budgetSemaine, request.mealTypes, [], tParams)
+          : null,
+      }
+    : null;
 
   // Substituts par MOMENT : "Changer" remplace un repas par un autre du même
   // moment, absent de la semaine (position conservée -> même jour/moment).
@@ -94,7 +142,7 @@ export default async function PlanPage({
 
   const viewData: PlanViewData = {
     store: { name: store.name, domain: store.domain, color: store.color },
-    recipes: meals.map(({ recipe, slot, day }) => {
+    recipes: meals.map(({ recipe, slot, day, factor }) => {
       const sub = subFor(slot);
       return {
         id: recipe.id,
@@ -109,11 +157,13 @@ export default async function PlanPage({
         kcal: recipe.nutrition.kcal,
         protein: recipe.nutrition.protein,
         mealCost: recipeMealCost(recipe, ingredientsMap, store, prefs.householdSize, priceBook.unit),
+        factor,
         swapHref: sub
           ? planHref(
               request.budget,
               request.mealTypes,
               selectedIds.map((id) => (id === recipe.id ? sub.id : id)),
+              tParams,
             )
           : null,
       };
@@ -125,8 +175,11 @@ export default async function PlanPage({
     householdSize: prefs.householdSize,
     plannedDays,
     withinBudget,
-    regenerateHref: planHref(request.budget, request.mealTypes, [], nextSeed),
-    listHref: `/list?meals=${selectedIds.join(",")}`,
+    regenerateHref: planHref(request.budget, request.mealTypes, [], tParams, nextSeed),
+    listHref: `/list?meals=${selectedIds.join(",")}${
+      target ? `&${new URLSearchParams(tParams).toString()}` : ""
+    }`,
+    nutritionTarget,
     homeHref: home.href,
     homeLabel: home.label,
     priceLive: priceBook.liveCount,

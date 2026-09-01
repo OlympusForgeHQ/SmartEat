@@ -23,6 +23,11 @@ export default async function GeneratingPage({
   if (budget) params.set("budget", budget);
   if (types) params.set("types", types);
   if (seed) params.set("seed", seed);
+  // Cible du calculateur diète : transmise telle quelle au plan (kcal + macros).
+  for (const key of ["kcal", "prot", "gluc", "lip"]) {
+    const value = sp[key];
+    if (typeof value === "string") params.set(key, value);
+  }
   const planHref = `/plan${params.toString() ? `?${params.toString()}` : ""}`;
 
   const store = await repo.getStore(prefs.storeId);

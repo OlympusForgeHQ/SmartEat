@@ -1,3 +1,5 @@
+import type { NutritionTarget } from "./nutrition-target";
+
 // Modèle de domaine — reflète le schéma du cahier des charges (§2 Logic Engine).
 // Les types restent identiques que les données viennent du seed ou de Postgres.
 
@@ -127,4 +129,7 @@ export interface GenerationRequest {
   budget: number; // € total pour la semaine
   mealTypes: MealType[]; // envies de la semaine (vide = peu importe)
   seed?: number; // graine de variété pour "régénérer la semaine"
+  // Cible calories/macros par jour issue du calculateur diète (onglet Diète).
+  // Présente -> le plan vise ces calories et ajuste les portions.
+  nutrition?: NutritionTarget;
 }

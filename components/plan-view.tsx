@@ -9,6 +9,7 @@ import {
   Flame,
   RotateCcw,
   ShoppingCart,
+  Target,
   UtensilsCrossed,
   Zap,
 } from "lucide-react";
@@ -37,6 +38,17 @@ export interface PlanViewData {
   homeLabel: string;
   priceLive: number;
   priceStatus: "catalog" | "mixed" | "unavailable";
+  // Cible venue du calculateur diète (onglet Diète). null = semaine libre.
+  nutritionTarget: {
+    kcalCible: number;
+    kcalAtteint: number;
+    proteinesCible: number;
+    proteinesAtteint: number;
+    resetHref: string;
+    // Budget qui couvrirait 7 jours à cette cible (null si non calculable).
+    budgetSemaine: number | null;
+    budgetHref: string | null;
+  } | null;
 }
 
 const slotRank = (s: PlanCardRecipe["slot"]) => MEAL_SLOT_ORDER.indexOf(s);
@@ -60,8 +72,13 @@ export function PlanView({
   // Équilibre de la semaine : moyennes PAR JOUR et PAR PERSONNE, à partir des
   // valeurs nutritionnelles (par portion) des recettes planifiées.
   const dayCount = Math.max(days.length, 1);
-  const avgKcal = Math.round(data.recipes.reduce((s, r) => s + r.kcal, 0) / dayCount);
-  const avgProtein = Math.round(data.recipes.reduce((s, r) => s + r.protein, 0) / dayCount);
+  // Portions réellement servies : une cible calorique fait manger ×1,4 d'un plat.
+  const avgKcal = Math.round(
+    data.recipes.reduce((s, r) => s + r.kcal * r.factor, 0) / dayCount,
+  );
+  const avgProtein = Math.round(
+    data.recipes.reduce((s, r) => s + r.protein * r.factor, 0) / dayCount,
+  );
   const balance = [
     { icon: Flame, value: String(avgKcal), caption: "kcal / jour" },
     { icon: Zap, value: `${avgProtein} g`, caption: "protéines / jour" },
@@ -115,6 +132,11 @@ export function PlanView({
         </div>
       ) : (
         <>
+          {/* Cible diète : la raison d'être de cette sélection, donc en tête. */}
+          {data.nutritionTarget && (
+            <NutritionTargetCard target={data.nutritionTarget} />
+          )}
+
           {/* Carte COÛT ESTIMÉ avec barre animée */}
           <motion.section
             initial={{ opacity: 0, y: 12 }}
@@ -205,8 +227,27 @@ export function PlanView({
             <div className="mt-3 flex items-start gap-2 rounded-2xl border border-accent/40 bg-accent/10 p-3 text-sm">
               <AlertTriangle size={16} className="mt-0.5 shrink-0 text-accent" />
               <span>
-                Le budget couvre <b>{data.plannedDays}</b> jour{data.plannedDays > 1 ? "s" : ""} sur 7.
-                Augmente le budget pour couvrir plus de jours.
+                Le budget couvre <b>{data.plannedDays}</b> jour{data.plannedDays > 1 ? "s" : ""} sur 7.{" "}
+                {data.nutritionTarget ? (
+                  <>
+                    Manger {data.nutritionTarget.kcalCible.toLocaleString("fr-FR")} kcal par jour
+                    demande des portions plus grandes, donc plus de courses.
+                    {data.nutritionTarget.budgetHref && (
+                      <>
+                        {" "}
+                        <Link
+                          href={data.nutritionTarget.budgetHref}
+                          className="font-semibold underline underline-offset-2"
+                        >
+                          Passer le budget à {formatEuro(data.nutritionTarget.budgetSemaine!)}
+                        </Link>{" "}
+                        pour couvrir les 7 jours.
+                      </>
+                    )}
+                  </>
+                ) : (
+                  "Augmente le budget pour couvrir plus de jours."
+                )}
               </span>
             </div>
           )}
@@ -266,5 +307,52 @@ export function PlanView({
         </div>
       )}
     </div>
+  );
+}
+
+// Bandeau « cible diète » : ce que le calculateur vise, ce que la semaine
+// atteint réellement. L'écart est signé et coloré (vert dans la tolérance,
+// terracotta au-delà) — l'utilisateur voit d'un coup si le plan tient sa promesse.
+function NutritionTargetCard({
+  target,
+}: {
+  target: NonNullable<PlanViewData["nutritionTarget"]>;
+}) {
+  const ecart = target.kcalAtteint - target.kcalCible;
+  const dansLaCible = Math.abs(ecart) <= target.kcalCible * 0.1;
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+      aria-label="Cible du calculateur diète"
+      className="mb-3 rounded-[var(--radius-card)] border border-primary/25 bg-primary/8 p-4"
+    >
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-on-surface-muted">
+          <Target size={13} className="text-primary" aria-hidden /> Cible diète
+        </h2>
+        <Link
+          href={target.resetHref}
+          className="shrink-0 text-xs font-medium text-on-surface-muted underline underline-offset-2 hover:text-on-surface"
+        >
+          Retirer
+        </Link>
+      </div>
+      <div className="mt-2 flex items-baseline gap-1.5">
+        <span className="tnum font-display text-3xl font-semibold tracking-tight text-primary">
+          {target.kcalAtteint.toLocaleString("fr-FR")}
+        </span>
+        <span className="tnum text-sm text-on-surface-muted">
+          / {target.kcalCible.toLocaleString("fr-FR")} kcal par jour
+        </span>
+      </div>
+      <p className="tnum mt-1.5 text-xs text-on-surface-muted">
+        <span className={dansLaCible ? "font-semibold text-primary" : "font-semibold text-accent"}>
+          {ecart === 0 ? "pile sur la cible" : `${ecart > 0 ? "+" : "−"}${Math.abs(ecart)} kcal`}
+        </span>{" "}
+        · protéines {target.proteinesAtteint} / {target.proteinesCible} g · portions ajustées.
+      </p>
+    </motion.section>
   );
 }

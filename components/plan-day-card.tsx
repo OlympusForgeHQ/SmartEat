@@ -19,6 +19,7 @@ export interface PlanCardRecipe {
   day: number; // 0 = Lundi … (regroupement par jour dans le plan)
   kcal: number; // par portion (équilibre de la semaine)
   protein: number; // g par portion
+  factor: number; // portion servie (1 = portion catalogue ; >1 si cible calorique)
 }
 
 // Carte repas photo-forward (SmartEat 3.0) : grande photo à gauche, pastille
@@ -78,6 +79,13 @@ export function PlanDayCard({
               <Wallet size={12} /> {formatEuro(mealCost)}
             </span>
           </div>
+          {/* Portion ajustée à la cible calorique : on annonce l'assiette réelle. */}
+          {recipe.factor !== 1 && (
+            <p className="tnum mt-1.5 inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
+              ×{recipe.factor.toLocaleString("fr-FR")} portion ·{" "}
+              {Math.round(recipe.kcal * recipe.factor)} kcal
+            </p>
+          )}
         </div>
       </Link>
 

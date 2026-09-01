@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { z } from "zod";
 import type { GenerationRequest, MealType, UserPrefs } from "./types";
 import { getSupabaseServer } from "./supabase/server";
+import { parseTarget } from "./nutrition-target";
 
 // Préférences durables persistées en cookie (MVP, §4 : alternative simple à
 // Supabase Auth + table users, qui reste le chemin de production).
@@ -209,7 +210,16 @@ export function parseRequest(
   const rawSeed = Number(first(searchParams.seed));
   const seed = Number.isFinite(rawSeed) && rawSeed > 0 ? rawSeed : undefined;
 
-  return { budget, mealTypes, seed };
+  // Cible calories/macros venue du calculateur diète (onglet Diète). Absente,
+  // le plan garde son comportement historique (budget + envies).
+  const nutrition = parseTarget({
+    kcal: first(searchParams.kcal),
+    prot: first(searchParams.prot),
+    gluc: first(searchParams.gluc),
+    lip: first(searchParams.lip),
+  });
+
+  return { budget, mealTypes, seed, nutrition };
 }
 
 export function parseMealIds(

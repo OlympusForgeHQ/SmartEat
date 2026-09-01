@@ -27,18 +27,37 @@ export interface ShoppingList {
   itemCount: number;
 }
 
+// Un repas du panier. Une recette nue vaut « une portion » ; avec une cible
+// calorique, le plan sert des portions ajustées (voir lib/nutrition-target.ts)
+// et les quantités à acheter suivent le même facteur.
+export interface MealPortion {
+  recipe: Recipe;
+  factor: number;
+}
+
+export type BasketItem = Recipe | MealPortion;
+
+function asPortion(item: BasketItem): MealPortion {
+  return "recipe" in item ? item : { recipe: item, factor: 1 };
+}
+
 export function buildShoppingList(
-  recipes: Recipe[],
+  basket: readonly BasketItem[],
   ingredientsById: Map<string, Ingredient>,
   householdSize: number,
   store: Store,
   priceBook?: Map<string, number>,
 ): ShoppingList {
-  // 1+2. Agrégation/dédoublonnage des BESOINS par ingrédient (× taille du foyer).
+  // 1+2. Agrégation/dédoublonnage des BESOINS par ingrédient
+  // (× taille du foyer × facteur de portion du repas).
   const needed = new Map<string, number>();
-  for (const recipe of recipes) {
+  for (const item of basket) {
+    const { recipe, factor } = asPortion(item);
     for (const ri of recipe.ingredients) {
-      needed.set(ri.ingredientId, (needed.get(ri.ingredientId) ?? 0) + ri.qtyPerServing * householdSize);
+      needed.set(
+        ri.ingredientId,
+        (needed.get(ri.ingredientId) ?? 0) + ri.qtyPerServing * householdSize * factor,
+      );
     }
   }
 

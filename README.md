@@ -27,7 +27,10 @@ magasins) est seedé en mémoire. Aucune variable d'environnement n'est requise.
 3. **Liste** (`/list`) — articles agrégés, groupés par rayon, coût estimé, export.
 4. **Diète** (`/calculateur`) — calculateur Diet Legacy : BMR/TDEE en direct puis plan
    calories & macros sur 8-9 semaines (moteur vérifié dans `lib/diet-calculator.ts`,
-   100 % client, saisie reprise en localStorage).
+   100 % client, saisie reprise en localStorage). Le bouton **Générer mes repas**
+   envoie la cible de la semaine 1 au plan (`/plan?kcal=…&prot=…`) : les recettes
+   sont choisies pour s'en approcher et les **portions ajustées** (×1,4 d'un plat)
+   comblent l'écart — la liste de courses suit les mêmes quantités.
 
 ## Architecture (le cœur : `lib/`)
 
@@ -35,6 +38,8 @@ magasins) est seedé en mémoire. Aucune variable d'environnement n'est requise.
 |---|---|
 | `lib/capabilities.ts` | Mapping **appareil → capacités de cuisson** (substitution Four/Air Fryer gratuite) |
 | `lib/matching-engine.ts` | Recipe Matching Engine : passe 1 (filtres durs) + passe 2 (scoring) |
+| `lib/diet-calculator.ts` | Calculateur diète (Boer + Katch-McArdle) : BMR/TDEE, 8-9 semaines, macros |
+| `lib/nutrition-target.ts` | Pont calories → repas : cible par moment, **facteur de portion**, totaux du jour |
 | `lib/shopping-list.ts` | Agrégation / dédoublonnage / groupement par rayon |
 | `lib/repo.ts` | **Point de bascule unique** seed → Supabase/Postgres |
 | `db/schema.ts` | Schéma Drizzle (cible de production) |

@@ -1,8 +1,10 @@
 import type { GenerationRequest, Ingredient, MealSlot, Recipe, Store, UserPrefs } from "./types";
+import type { NutritionTarget } from "./nutrition-target";
 import { userCapabilities } from "./capabilities";
 import { MEAL_SLOT_ORDER, PROTEIN_MIN } from "./labels";
 import { recipeCostPerServing } from "./pricing";
-import { buildShoppingList } from "./shopping-list";
+import { buildShoppingList, type MealPortion } from "./shopping-list";
+import { portionFactor, slotKcalTargets, slotShares, targetAffinity } from "./nutrition-target";
 
 // Recipe Matching Engine — §2, version "budget-aware".
 // 1) Filtres durs (régime / équipement / moment / ambiance) -> élimination.
@@ -151,16 +153,20 @@ export function rankRecipes(
     .sort((a, b) => b.score - a.score || a.recipe.id.localeCompare(b.recipe.id));
 }
 
-// Un repas placé dans la semaine : quel jour (0 = Lundi), quel moment, quelle recette.
+// Un repas placé dans la semaine : quel jour (0 = Lundi), quel moment, quelle
+// recette — et en quelle portion (1 = portion standard du catalogue ; ajustée
+// quand une cible calorique est demandée, cf. lib/nutrition-target.ts).
 export interface PlannedMeal {
   day: number; // 0..6 -> Lundi..Dimanche
   slot: MealSlot;
   recipe: Recipe;
+  factor: number;
 }
 
 export interface WeekPlan {
   meals: PlannedMeal[]; // grille jour × moment
   recipes: Recipe[]; // liste plate (ordre par jour) pour la liste de courses
+  portions: MealPortion[]; // même liste, avec le facteur de portion de chaque repas
   total: number; // coût réel du panier (au magasin) — DOIT être <= budget
   plannedDays: number; // nb de jours complets réellement générés
   targetDays: number; // nb de jours visés (borné par le budget)
@@ -193,40 +199,70 @@ export function planWeek(
   const ranked = rankRecipes(recipes, prefs, request, ingredientsById, store, priceBook);
   const slots = requestedSlots(prefs);
 
+  // Cible du calculateur diète : calories (et protéines) visées PAR MOMENT.
+  const target = request.nutrition;
+  const kcalBySlot = target ? slotKcalTargets(target, slots) : null;
+  const proteinBySlot = target
+    ? new Map([...slotShares(slots)].map(([s, part]) => [s, target.proteinesG * part]))
+    : null;
+
+  // Portion servie pour un repas : 1 sans cible, ajustée sinon.
+  const factorFor = (recipe: Recipe, slot: MealSlot): number =>
+    kcalBySlot ? portionFactor(recipe.nutrition.kcal, kcalBySlot.get(slot) ?? 0) : 1;
+
   // Une file ordonnée par score et par moment : une recette figure dans chaque
-  // moment qu'elle couvre.
+  // moment qu'elle couvre. Avec une cible, on reclasse chaque file en mêlant le
+  // score global (envies, prix, rapidité, variété) et l'affinité à la cible du
+  // moment — sinon deux recettes également « bonnes » ignoreraient les calories.
   const bySlot = new Map<MealSlot, Recipe[]>(slots.map((s) => [s, []]));
+  const scoreById = new Map(ranked.map((r) => [r.recipe.id, r.score]));
   for (const { recipe } of ranked) {
     for (const s of slots) {
       if (recipe.slots.includes(s)) bySlot.get(s)!.push(recipe);
     }
   }
+  if (kcalBySlot && proteinBySlot) {
+    for (const [slot, list] of bySlot) {
+      const kcal = kcalBySlot.get(slot) ?? 0;
+      const prot = proteinBySlot.get(slot) ?? 0;
+      const blended = new Map(
+        list.map((r) => [
+          r.id,
+          0.5 * targetAffinity(r, kcal, prot) + 0.5 * (scoreById.get(r.id) ?? 0),
+        ]),
+      );
+      list.sort(
+        (a, b) => (blended.get(b.id) ?? 0) - (blended.get(a.id) ?? 0) || a.id.localeCompare(b.id),
+      );
+    }
+  }
   const usedIds = new Set<string>();
-  const chosen: Recipe[] = [];
+  const chosen: MealPortion[] = [];
   const meals: PlannedMeal[] = [];
 
   // Choisit la meilleure recette qui tient dans le budget pour un moment donné.
   // `allowReuse` = true autorise à re-piocher une recette déjà servie.
   function pickForSlot(
     slot: MealSlot,
-    todayPicks: Recipe[],
+    todayPicks: MealPortion[],
     allowReuse: boolean,
-  ): Recipe | null {
+  ): MealPortion | null {
     const list = bySlot.get(slot)!;
     for (const cand of list) {
       // Toujours interdire de servir 2 fois la MÊME recette dans un même jour.
-      if (todayPicks.some((r) => r.id === cand.id)) continue;
+      if (todayPicks.some((p) => p.recipe.id === cand.id)) continue;
       if (!allowReuse && usedIds.has(cand.id)) continue;
-      const basket = [...chosen, ...todayPicks, cand];
+      const portion: MealPortion = { recipe: cand, factor: factorFor(cand, slot) };
+      const basket = [...chosen, ...todayPicks, portion];
       const total = buildShoppingList(basket, ingredientsById, prefs.householdSize, store, priceBook).total;
-      if (total <= request.budget) return cand;
+      if (total <= request.budget) return portion;
     }
     return null;
   }
 
   for (let day = 0; day < WEEK_LEN; day++) {
     // Composer un jour COMPLET : 1 recette par moment, panier <= budget.
-    const dayPicks: Recipe[] = [];
+    const dayPicks: MealPortion[] = [];
     const dayMeals: PlannedMeal[] = [];
     let complete = true;
 
@@ -239,13 +275,13 @@ export function planWeek(
         break;
       }
       dayPicks.push(picked);
-      dayMeals.push({ day, slot, recipe: picked });
+      dayMeals.push({ day, slot, recipe: picked.recipe, factor: picked.factor });
     }
 
     if (!complete) break;
 
     for (const m of dayMeals) {
-      chosen.push(m.recipe);
+      chosen.push({ recipe: m.recipe, factor: m.factor });
       usedIds.add(m.recipe.id);
       meals.push(m);
     }
@@ -255,7 +291,8 @@ export function planWeek(
   const plannedDays = new Set(meals.map((m) => m.day)).size;
   return {
     meals,
-    recipes: chosen,
+    recipes: chosen.map((p) => p.recipe),
+    portions: chosen,
     total,
     plannedDays,
     targetDays: WEEK_LEN,
@@ -276,17 +313,26 @@ export function buildPlanFromIds(
 
 // Reconstruit une grille jour × moment depuis une liste plate (chemin "preset",
 // après un swap). On assigne un moment à chaque recette (équilibrage), puis le
-// k-ième repas d'un moment tombe le jour k.
-export function toDayGrid(recipes: Recipe[], selectedSlots: MealSlot[]): PlannedMeal[] {
+// k-ième repas d'un moment tombe le jour k. La portion est recalculée sur la
+// cible du moment, pour qu'un repas échangé reste aligné sur les calories.
+export function toDayGrid(
+  recipes: Recipe[],
+  selectedSlots: MealSlot[],
+  target?: NutritionTarget,
+): PlannedMeal[] {
   const slots = MEAL_SLOT_ORDER.filter((s) => selectedSlots.includes(s));
   const effective = slots.length ? slots : DEFAULT_SLOTS;
   const slotOf = assignSlots(recipes, effective);
+  const kcalBySlot = target ? slotKcalTargets(target, effective) : null;
   const dayOf = new Map<MealSlot, number>();
   return recipes.map((r) => {
     const slot = slotOf.get(r.id) ?? effective[0];
     const day = dayOf.get(slot) ?? 0;
     dayOf.set(slot, day + 1);
-    return { day, slot, recipe: r };
+    const factor = kcalBySlot
+      ? portionFactor(r.nutrition.kcal, kcalBySlot.get(slot) ?? 0)
+      : 1;
+    return { day, slot, recipe: r, factor };
   });
 }
 

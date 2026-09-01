@@ -14,6 +14,10 @@ import {
   type PreferenceAlimentaire,
   type Sexe,
 } from "@/lib/diet-calculator";
+import Link from "next/link";
+import { UtensilsCrossed } from "lucide-react";
+import { targetParams } from "@/lib/nutrition-target";
+import { buttonClasses } from "@/components/ui/button";
 import { CountUp } from "@/components/ui/count-up";
 import { Stagger, StaggerItem } from "@/components/ui/motion";
 import { cn } from "@/lib/utils";
@@ -364,6 +368,26 @@ function PlanResultats({
           Protéines fixes : 2 g/kg, soit {nombre.format(Math.round(2 * poidsKg))} g par jour.
         </p>
       </div>
+
+      {/* Le pont vers la cuisine : ces calories deviennent des repas réels.
+          On part de la semaine 1 (la semaine en cours du plan). */}
+      <Link
+        href={`/generating?${new URLSearchParams(
+          targetParams({
+            kcal: s1.kcal,
+            proteinesG: s1.proteinesG,
+            glucidesG: s1.glucidesG,
+            lipidesG: s1.lipidesG,
+          }),
+        ).toString()}`}
+        className={`${buttonClasses("primary", "lg")} mt-4 w-full`}
+      >
+        <UtensilsCrossed size={18} /> Générer mes repas
+      </Link>
+      <p className="mt-2 text-center text-[11px] text-on-surface-muted">
+        Une semaine de recettes calée sur {nombre.format(s1.kcal)} kcal par jour, portions
+        ajustées et liste de courses comprise.
+      </p>
 
       {plan.macrosEcretees && (
         <div className="mt-3 rounded-[var(--radius-card)] border border-accent/30 bg-accent/10 p-4 text-sm">
