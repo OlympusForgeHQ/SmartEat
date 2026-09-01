@@ -15,7 +15,7 @@ import {
   type Sexe,
 } from "@/lib/diet-calculator";
 import { CountUp } from "@/components/ui/count-up";
-import { Stagger, StaggerItem, Tappable } from "@/components/ui/motion";
+import { Stagger, StaggerItem } from "@/components/ui/motion";
 import { cn } from "@/lib/utils";
 
 // Calculateur Diet Legacy — piste « Bilan express » (voir
@@ -106,12 +106,49 @@ export function DietCalculator() {
   const plan = valide ? buildDietPlan(input) : null;
 
   const perte = draft.objectif === "perte";
+  const coeffIdx = Math.max(
+    0,
+    ACTIVITY_LEVELS.findIndex((n) => n.coefficient === draft.coefficient),
+  );
 
   return (
     // Mobile : une colonne. Desktop (lg) : formulaire à gauche, plan sticky à
     // droite — chaque réglage se reflète sans défilement (piste Bilan express).
     <div className="lg:grid lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] lg:items-start lg:gap-14">
       <div>
+      {/* Pastille sticky (mobile) : le résultat suit pendant les réglages,
+          un appui mène au plan complet. Le desktop a son panneau permanent. */}
+      <AnimatePresence initial={false}>
+        {plan && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.25, ease: EASE }}
+            className="sticky top-3 z-20 mb-5 lg:hidden"
+          >
+            <a
+              href="#plan"
+              aria-label="Voir le plan complet"
+              className="flex items-baseline gap-2 rounded-full border border-primary/25 bg-surface px-5 py-3 shadow-[var(--shadow-md)] transition-transform active:scale-[0.98]"
+            >
+              <CountUp
+                value={plan.semaines[0].kcal}
+                duration={0.5}
+                format={(v) => nombre.format(Math.round(v))}
+                className="tnum font-display text-xl font-semibold tracking-tight text-primary"
+              />
+              <span className="text-xs font-semibold text-on-surface-muted">
+                kcal / jour · semaine 1
+              </span>
+              <span className="tnum ml-auto shrink-0 text-xs font-semibold text-on-surface-muted">
+                TDEE {nombre.format(plan.tdee)}
+              </span>
+            </a>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* ---------- 1. TOI ---------- */}
       <SectionLabel n={1} title="Toi" />
       <Segmented
@@ -157,69 +194,35 @@ export function DietCalculator() {
         />
       </div>
 
-      {/* ---------- 2. ACTIVITÉ ---------- */}
+      {/* ---------- 2. ACTIVITÉ — curseur 5 crans (idiome slider budget) ---------- */}
       <SectionLabel n={2} title="Coefficient d'activité" className="mt-8" />
-      <div className="space-y-2.5">
-        {ACTIVITY_LEVELS.map((niveau) => {
-          const on = draft.coefficient === niveau.coefficient;
-          return (
-            <Tappable key={niveau.coefficient}>
-              <button
-                type="button"
-                aria-pressed={on}
-                onClick={() => set("coefficient", niveau.coefficient)}
-                className={cn(
-                  "flex min-h-11 w-full items-center gap-3 rounded-[var(--radius-card)] border px-4 py-3 text-left text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
-                  on
-                    ? "border-primary bg-primary/8 ring-2 ring-primary"
-                    : "border-outline bg-surface hover:bg-surface-variant",
-                )}
-              >
-                <span className="min-w-0 flex-1 font-medium">{niveau.label}</span>
-                <span
-                  className={cn(
-                    "tnum shrink-0 text-sm font-bold",
-                    on ? "text-primary" : "text-on-surface-muted",
-                  )}
-                >
-                  ×{niveau.coefficient.toLocaleString("fr-FR")}
-                </span>
-              </button>
-            </Tappable>
-          );
-        })}
+      <div className="rounded-[var(--radius-card)] border border-outline bg-surface px-4 pb-3.5 pt-4">
+        <div className="flex min-h-10 items-center justify-between gap-3">
+          <span className="min-w-0 flex-1 text-sm font-medium leading-snug">
+            {ACTIVITY_LEVELS[coeffIdx].label}
+          </span>
+          <span className="tnum shrink-0 font-display text-2xl font-semibold tracking-tight text-primary">
+            ×{ACTIVITY_LEVELS[coeffIdx].coefficient.toLocaleString("fr-FR")}
+          </span>
+        </div>
+        <input
+          id="coefficient"
+          type="range"
+          min={0}
+          max={ACTIVITY_LEVELS.length - 1}
+          step={1}
+          value={coeffIdx}
+          onChange={(e) => set("coefficient", ACTIVITY_LEVELS[Number(e.target.value)].coefficient)}
+          aria-label="Coefficient d'activité"
+          aria-valuetext={`${ACTIVITY_LEVELS[coeffIdx].label} (coefficient ${ACTIVITY_LEVELS[coeffIdx].coefficient.toLocaleString("fr-FR")})`}
+          className="mt-3 h-2 w-full cursor-pointer appearance-none rounded-full bg-surface-variant accent-primary"
+        />
+        <div className="tnum mt-1.5 flex justify-between text-[11px] text-on-surface-muted">
+          {ACTIVITY_LEVELS.map((n) => (
+            <span key={n.coefficient}>×{n.coefficient.toLocaleString("fr-FR")}</span>
+          ))}
+        </div>
       </div>
-
-      {/* ---------- Résultat en direct : BMR / TDEE ---------- */}
-      <AnimatePresence initial={false}>
-        {plan && (
-          <motion.div
-            initial={{ opacity: 0, y: 10, height: 0 }}
-            animate={{ opacity: 1, y: 0, height: "auto" }}
-            exit={{ opacity: 0, y: 10, height: 0 }}
-            transition={{ duration: 0.3, ease: EASE }}
-            className="overflow-hidden lg:hidden"
-          >
-            <div className="mt-5 flex items-baseline gap-2 rounded-[var(--radius-card)] border border-primary/25 bg-primary/10 px-5 py-4">
-              <CountUp
-                value={plan.tdee}
-                duration={0.5}
-                format={(v) => nombre.format(Math.round(v))}
-                className="tnum font-display text-4xl font-semibold tracking-tight text-primary"
-              />
-              <span className="text-xs font-semibold text-on-surface-muted">
-                kcal dépensées / jour
-              </span>
-              <span className="tnum ml-auto text-right text-xs leading-5 text-on-surface-muted">
-                BMR{" "}
-                <span className="font-semibold text-on-surface">{nombre.format(plan.bmr)}</span>
-                <br />
-                en direct
-              </span>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* ---------- 3. OBJECTIF ---------- */}
       <SectionLabel n={3} title="Objectif" className="mt-8" />
@@ -289,7 +292,7 @@ export function DietCalculator() {
       </div>
 
       {/* ---------- PLAN — panneau permanent à droite sur desktop ---------- */}
-      <div className="mt-10 lg:sticky lg:top-10 lg:mt-0">
+      <div id="plan" className="mt-10 scroll-mt-20 lg:sticky lg:top-10 lg:mt-0">
         {plan ? (
           <PlanResultats
             plan={plan}
@@ -372,12 +375,61 @@ function PlanResultats({
         </div>
       )}
 
-      {/* Timeline horizontale des semaines */}
+      {/* Mobile : relevé tableau — les semaines se comparent d'un regard,
+          sans défilement caché (piste « Fiche mesure » de la galerie). */}
+      <div className="mt-4 overflow-hidden rounded-[var(--radius-card)] border border-outline bg-surface lg:hidden">
+        <table className="w-full text-[13px]">
+          <caption className="sr-only">Calories et macros par semaine</caption>
+          <thead>
+            <tr className="text-[11px] uppercase tracking-wide text-on-surface-muted">
+              <th scope="col" className="py-2.5 pl-4 text-left font-semibold">
+                Sem.
+              </th>
+              <th scope="col" className="py-2.5 text-right font-semibold">
+                kcal
+              </th>
+              <th scope="col" className="py-2.5 text-right font-semibold">
+                Prot.
+              </th>
+              <th scope="col" className="py-2.5 text-right font-semibold">
+                Gluc.
+              </th>
+              <th scope="col" className="py-2.5 pr-4 text-right font-semibold">
+                Lip.
+              </th>
+            </tr>
+          </thead>
+          <tbody className="tnum">
+            {plan.semaines.map((s) => (
+              <tr
+                key={s.numero}
+                className={cn("border-t border-outline", s.numero === 1 && "bg-primary/8")}
+              >
+                <td
+                  className={cn(
+                    "py-2.5 pl-4 font-bold",
+                    s.numero === 1 ? "text-primary" : "text-on-surface-muted",
+                  )}
+                >
+                  S{s.numero}
+                </td>
+                <td className="py-2.5 text-right font-bold">{nombre.format(s.kcal)}</td>
+                <td className="py-2.5 text-right text-on-surface-muted">{s.proteinesG}</td>
+                <td className="py-2.5 text-right text-on-surface-muted">{s.glucidesG}</td>
+                <td className="py-2.5 pr-4 text-right text-on-surface-muted">{s.lipidesG}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="mt-2 text-[11px] text-on-surface-muted lg:hidden">
+        Macros en grammes par jour.
+      </p>
+
+      {/* Desktop : grille sans défilement, rangées pleines (8 sem -> 4x2, 9 sem -> 3x3) */}
       <Stagger
         className={cn(
-          "-mx-5 mt-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
-          // Desktop : grille sans défilement, rangées pleines (8 sem -> 4x2, 9 sem -> 3x3)
-          "lg:mx-0 lg:grid lg:overflow-visible lg:px-0",
+          "mt-4 hidden gap-3 lg:grid",
           plan.semaines.length === 9 ? "lg:grid-cols-3" : "lg:grid-cols-4",
         )}
         role="list"
@@ -387,7 +439,7 @@ function PlanResultats({
           <StaggerItem
             key={s.numero}
             role="listitem"
-            className="w-[136px] shrink-0 snap-start rounded-[var(--radius-card)] border border-outline bg-surface p-3.5 lg:w-auto"
+            className="rounded-[var(--radius-card)] border border-outline bg-surface p-3.5"
           >
             <span
               className={cn(
