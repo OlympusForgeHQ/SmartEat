@@ -114,7 +114,7 @@ export function ShoppingList({
         </p>
       </div>
 
-      <Stagger className="space-y-4">
+      <Stagger className="space-y-4 lg:columns-2 lg:gap-5 lg:space-y-0 [&>*]:lg:mb-5 [&>*]:lg:break-inside-avoid">
         {sections.map((section) => {
           const subtotal = section.lines.reduce(
             (sum, l) => (owned.has(l.ingredient.id) ? sum : sum + l.cost),
@@ -198,7 +198,7 @@ export function ShoppingList({
 
       {/* CTA flottant au-dessus de la barre d'onglets (voir REFONTE.md §5) */}
       <div className="fixed inset-x-0 bottom-[72px] z-30">
-        <div className="mx-auto max-w-md px-5">
+        <div className="mx-auto max-w-md px-5 lg:mx-0 lg:ml-auto lg:mr-8 lg:max-w-xs lg:px-0">
           <ShareListButton
             title={`SmartEat — Liste de courses (${storeName})`}
             text={shareText}

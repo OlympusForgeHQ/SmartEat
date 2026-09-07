@@ -160,7 +160,7 @@ export function OnboardingWizard({ stores }: { stores: Store[] }) {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: dir * -40 }}
             transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-            className="mx-auto w-full max-w-md"
+            className="mx-auto w-full max-w-md lg:max-w-lg"
           >
             {step === 0 && (
               <Step title="Dans quel pays ?" subtitle="On charge les enseignes de ton pays.">

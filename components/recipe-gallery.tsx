@@ -74,7 +74,7 @@ export function RecipeGallery({ recipes }: { recipes: GalleryRecipe[] }) {
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Rechercher une recette…"
           aria-label="Rechercher une recette"
-          className="h-12 w-full rounded-full border border-outline bg-surface pl-11 pr-4 text-[15px] text-on-surface placeholder:text-on-surface-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          className="h-12 w-full max-w-xl rounded-full border border-outline bg-surface pl-11 pr-4 text-[15px] text-on-surface placeholder:text-on-surface-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         />
       </label>
 
@@ -113,7 +113,7 @@ export function RecipeGallery({ recipes }: { recipes: GalleryRecipe[] }) {
           </p>
         </div>
       ) : (
-        <Stagger className="mt-4 grid grid-cols-2 gap-3">
+        <Stagger className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 lg:gap-4">
           {filtered.map((r) => (
             <StaggerItem key={r.id}>
               {/* Le cœur vit HORS du lien (pas d'interactif imbriqué) */}

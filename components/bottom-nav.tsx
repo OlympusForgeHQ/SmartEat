@@ -47,7 +47,7 @@ export function BottomNav() {
       aria-label="Navigation principale"
       className="fixed inset-x-0 bottom-0 z-40 border-t border-outline bg-surface/92 backdrop-blur"
     >
-      <div className="mx-auto grid h-16 max-w-md grid-cols-6">
+      <div className="mx-auto grid h-16 max-w-md grid-cols-6 lg:max-w-2xl">
         {ITEMS.map((item) => {
           const active = item.isActive(pathname);
           const Icon = item.icon;

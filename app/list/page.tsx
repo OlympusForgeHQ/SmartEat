@@ -54,7 +54,7 @@ export default async function ListPage({
   const initialOwned = user ? await loadPantry() : [];
 
   return (
-    <div className="mx-auto w-full max-w-md px-5 pb-44 pt-6">
+    <div className="mx-auto w-full max-w-md px-5 pb-44 pt-6 lg:max-w-5xl lg:px-8 lg:pb-16 lg:pt-10">
       <header className="mb-5">
         <Link
           href={`/plan?meals=${ids.join(",")}${

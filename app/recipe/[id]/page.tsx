@@ -74,7 +74,7 @@ export default async function RecipePage({
   }
 
   return (
-    <div className="mx-auto w-full max-w-md pb-28">
+    <div className="mx-auto w-full max-w-md pb-28 lg:max-w-3xl lg:pb-16">
       {/* En-tête visuel plein cadre */}
       <div className="relative">
         <RecipeImage

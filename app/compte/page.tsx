@@ -29,7 +29,7 @@ export default async function ComptePage() {
   const monogram = user?.email?.[0]?.toUpperCase();
 
   return (
-    <main className="mx-auto w-full max-w-md px-5 py-8 pb-28">
+    <main className="mx-auto w-full max-w-md px-5 py-8 pb-28 lg:max-w-3xl lg:px-8 lg:py-12">
       <Link
         href="/"
         className="inline-flex min-h-11 items-center gap-1 text-sm text-on-surface-muted hover:text-on-surface"

@@ -26,7 +26,7 @@ export default async function RecettesPage() {
   }));
 
   return (
-    <div className="mx-auto w-full max-w-md px-5 pb-28 pt-6">
+    <div className="mx-auto w-full max-w-md px-5 pb-28 pt-6 lg:max-w-6xl lg:px-8 lg:pt-10">
       <Link
         href="/"
         className="mb-3 inline-flex items-center gap-1 text-sm text-on-surface-muted hover:text-on-surface"

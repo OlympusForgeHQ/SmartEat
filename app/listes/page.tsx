@@ -37,7 +37,7 @@ export default async function ListesPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-md px-5 pb-28 pt-8">
+    <main className="mx-auto w-full max-w-md px-5 pb-28 pt-8 lg:max-w-5xl lg:px-8 lg:pt-12">
       <Link
         href={user ? "/compte" : "/"}
         className="mb-4 inline-flex items-center gap-1 text-sm text-on-surface-muted hover:text-on-surface"

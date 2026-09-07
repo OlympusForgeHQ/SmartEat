@@ -63,7 +63,7 @@ export function Landing({
   ];
 
   return (
-    <main className="mx-auto w-full max-w-md px-6 pb-44">
+    <main className="mx-auto w-full max-w-md px-6 pb-44 lg:max-w-5xl lg:px-8 lg:pb-24">
       {/* ---------- HERO ---------- */}
       <motion.section
         initial={{ opacity: 0, y: 16 }}
@@ -93,7 +93,7 @@ export function Landing({
           Qu&apos;est-ce qu&apos;on mange <em className="text-accent">ce soir</em> ?
         </h1>
         <p className="mt-3 text-xl font-medium text-primary">Plus jamais cette question.</p>
-        <p className="mt-4 text-on-surface-muted">
+        <p className="mt-4 max-w-2xl text-on-surface-muted">
           SmartEat compose ta semaine de repas selon ton budget, ton équipement et tes envies, puis
           génère ta liste de courses.
         </p>
@@ -245,7 +245,7 @@ export function Landing({
 
       {/* ---------- CTA FLOTTANT (au-dessus de la bottom nav, voir REFONTE §5) ---------- */}
       <div className="fixed inset-x-0 bottom-[72px] z-30">
-        <div className="mx-auto max-w-md px-5">
+        <div className="mx-auto max-w-md px-5 lg:mx-0 lg:ml-auto lg:mr-8 lg:max-w-xs lg:px-0">
           {hasPrefs ? (
             <Link
               href="/plan"

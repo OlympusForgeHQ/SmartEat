@@ -86,7 +86,7 @@ export function PlanView({
   ];
 
   return (
-    <div className="mx-auto w-full max-w-md px-5 pb-44 pt-6">
+    <div className="mx-auto w-full max-w-md px-5 pb-44 pt-6 lg:max-w-6xl lg:px-8 lg:pb-16 lg:pt-10 2xl:max-w-7xl">
       {/* Navigation : retour au compte (connecté) ou à l'accueil (invité) */}
       <Link
         href={data.homeHref}
@@ -102,7 +102,9 @@ export function PlanView({
         transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
         className="mb-5"
       >
-        <h1 className="font-display text-3xl font-semibold tracking-tight">Bon appétit ! 🎉</h1>
+        <h1 className="font-display text-3xl font-semibold tracking-tight lg:text-4xl">
+            Bon appétit ! 🎉
+          </h1>
         <p className="mt-1 text-on-surface-muted">Ta semaine est prête.</p>
         <div className="mt-3">
           <span className="inline-flex items-center gap-2 rounded-full border border-outline bg-surface px-3 py-1.5 text-sm">
@@ -132,6 +134,10 @@ export function PlanView({
         </div>
       ) : (
         <>
+          {/* Desktop : synthèse à gauche (collante), semaine à droite. Le plan
+              se lit alors d'un seul écran au lieu d'une longue colonne. */}
+          <div className="lg:grid lg:grid-cols-[minmax(0,21rem)_minmax(0,1fr)] lg:items-start lg:gap-10">
+          <div className="lg:sticky lg:top-8">
           {/* Cible diète : la raison d'être de cette sélection, donc en tête. */}
           {data.nutritionTarget && (
             <NutritionTargetCard target={data.nutritionTarget} />
@@ -251,9 +257,11 @@ export function PlanView({
               </span>
             </div>
           )}
+          </div>
 
+          <div>
           {/* Repas regroupés par JOUR de la semaine (Lundi -> Dimanche) */}
-          <div className="mt-6 space-y-7">
+          <div className="mt-6 space-y-7 lg:mt-0 lg:grid lg:grid-cols-2 lg:gap-x-6 lg:gap-y-8 lg:space-y-0">
             {groups.map((g) => (
               <section key={g.day}>
                 <h2 className="mb-2 flex items-center gap-2 font-display text-lg font-semibold tracking-tight">
@@ -290,12 +298,14 @@ export function PlanView({
 
           {/* Réglages complémentaires (ex. "Ajuster cette semaine") */}
           {children}
+          </div>
+          </div>
         </>
       )}
 
       {/* CTA flottant AU-DESSUS de la bottom nav (voir REFONTE.md §5) */}
       {data.recipes.length > 0 && (
-        <div className="fixed inset-x-0 bottom-[72px] z-30">
+        <div className="fixed inset-x-0 bottom-[72px] z-30 lg:hidden">
           <div className="mx-auto max-w-md px-5">
             <Link
               href={data.listHref}
